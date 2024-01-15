@@ -1,15 +1,24 @@
+# standard library
 import sys
-import pandas as pd
+
+# external
+
+# local
+import preprocess as pre
+from utilities import constants as c
 
 
 def main(input_path, output_path):
-    df = read_df(input_path)
-    df.to_csv(output_path, index=False)
+    # read the input csv into a dataframe
+    df = pre.read_df(input_path)
+
+    # drop unneeded columns
+    df = pre.drop_columns(df, c.DROP_COLUMNS)
 
 
-def read_df(file_path):
-    df = pd.read_csv(file_path)
-    return df
+
+    # output the augmented dataframe as a csv
+    # df.to_csv(output_path, index=False)
 
 
 if __name__ == "__main__":
