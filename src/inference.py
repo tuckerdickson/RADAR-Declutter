@@ -1,25 +1,26 @@
-# standard library
-import sys
+# built-in
 
 # external
 
 # local
 import preprocess as pre
-from utilities import constants as c
 
 
-def main(input_path, output_path):
+def make_inference(input_path, output_path):
     # read the input csv into a dataframe
-    df = pre.read_df(input_path)
+    input_df = pre.read_df(input_path)
 
-    # drop unneeded columns
-    df = pre.drop_columns(df, c.DROP_COLUMNS)
+    # TODO: processing
+    #  - drop columns
+    #  - calculate feature vectors
 
+    # TODO: classifier
 
+    # TODO: add the prediction to input data
+    input_df["Prediction"] = "Bird"
+    input_df["Confidence"] = 100.0
+
+    print(input_df.head(10))
 
     # output the augmented dataframe as a csv
-    # df.to_csv(output_path, index=False)
-
-
-if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    # input_df.to_csv(output_path, index=False)

@@ -1,5 +1,5 @@
-def main():
-    print("this is evaluate.py")
+# built-in
 
-if __name__ == "__main__":
-    main()
+# external
+
+# local
