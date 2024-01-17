@@ -10,9 +10,9 @@ def make_inference(input_path, output_path):
     # read the input csv into a dataframe
     input_df = pre.read_df(input_path)
 
-    # TODO: processing
-    #  - drop columns
-    #  - calculate feature vectors
+    # drop appropriate columns
+
+    # TODO: calculate feature vectors
 
     # TODO: classifier
 
@@ -23,4 +23,4 @@ def make_inference(input_path, output_path):
     print(input_df.head(10))
 
     # output the augmented dataframe as a csv
-    # input_df.to_csv(output_path, index=False)
+    input_df.to_csv(output_path, index=False)
