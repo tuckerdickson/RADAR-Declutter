@@ -7,3 +7,5 @@ DROP_COLUMNS = ['Name', 'Create Time', 'Update Time', 'User Edit Time', 'Type',
                 'Radial Velocity', 'Closest Distance', 'Deleted', 'Deleted Time',
                 'AIS MMSI', 'AIS IMO', 'AIS Call Sign', 'AIS Ship Type',
                 'AIS Destination', 'AIS ETA', 'Fused', 'Fused Tracks']
+
+MODEL_PATH = '../models/initial_noFF.sav'
