@@ -4,11 +4,14 @@ import sys
 # external
 
 # local
-import evaluate
+import dictionary
 import inference
-import train
+import model
+from utilities import constants as c
 
 if __name__ == "__main__":
+    model = model.Model(path=c.MODEL_PATH)
+    dictionary = dictionary.Dictionary()
     command = [""]
 
     # keep looping until the user requests to exit
@@ -20,7 +23,10 @@ if __name__ == "__main__":
             print("evaluate")
 
         elif command[0] == "inference":
-            print("inference")
+            try:
+                model.make_inference(command[1], command[2])
+            except IndexError:
+                print("error: inference command must include input file and output file.")
 
         elif command[0] == "train":
             print("train")
