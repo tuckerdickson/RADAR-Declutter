@@ -1,11 +1,9 @@
 # built-in
-import sys
 
 # external
 
 # local
 import dictionary
-import inference
 import model
 from utilities import constants as c
 
@@ -19,10 +17,8 @@ if __name__ == "__main__":
         # split the input for parsing
         command = input("> ").split()
 
-        if command[0] == "evaluate":
-            print("evaluate")
-
-        elif command[0] == "inference":
+        # branch based on the command typed in
+        if command[0] == "inference":
             try:
                 model.make_inference(command[1], command[2])
             except IndexError:
