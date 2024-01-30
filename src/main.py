@@ -9,17 +9,24 @@ import inference
 import train
 
 if __name__ == "__main__":
-    # the first command-line argument specifies the action to perform (train, evalute, or make inference)
-    command = sys.argv[1]
+    command = [""]
 
-    if command == "evaluate":
-        print("evaluate")
+    # keep looping until the user requests to exit
+    while command[0] != "quit":
+        # split the input for parsing
+        command = input("> ").split()
 
-    elif command == "inference":
-        inference.make_inference(sys.argv[2], sys.argv[3])
+        if command[0] == "evaluate":
+            print("evaluate")
 
-    elif command == "train":
-        print("train")
+        elif command[0] == "inference":
+            print("inference")
 
-    else:
-        print("Invalid command.")
+        elif command[0] == "train":
+            print("train")
+
+        elif command[0] == "quit":
+            pass
+
+        else:
+            print("invalid command")
