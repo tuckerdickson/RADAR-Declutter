@@ -1,15 +1,9 @@
-# built-in
-
-# external
-
-# local
 import dictionary
 import model
 from utilities import constants as c
 
 if __name__ == "__main__":
     model = model.Model(path=c.MODEL_PATH)
-    dictionary = dictionary.Dictionary()
     command = [""]
 
     # keep looping until the user requests to exit
