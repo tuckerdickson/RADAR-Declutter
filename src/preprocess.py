@@ -12,19 +12,3 @@ def read_df(file_path):
 
 def drop_columns(df, columns):
     return df.drop(columns=columns)
-
-
-def calculate_avg_speed(df):
-    return 0
-
-
-def calculate_std_speed(df):
-    return 0
-
-
-def calculate_std_heading(df):
-    return 0
-
-
-def calculate_mav_factor(df):
-    return 0

@@ -1,25 +1,26 @@
 import numpy as np
 
 
-class FeatureVector:
-    def __init__(self, df=None):
+class RADARTrack:
+    def __init__(self, init_vals, df=None):
         if df != None:
             # implement training feature creation
             pass
         else:
+            # TODO figure out ideal initial values
             self.avg_speed = 0
             self.std_speed = 0
-            self.prev_speed = 0
+            self.prev_speed = init_vals["speed"]
             self.avg_heading = 0
             self.std_heading = 0
             self.prev_heading = 0
-            self.prev_az = 0
-            self.prev_el = 0
-            self.prev_range = 0
+            self.prev_az = init_vals["azimuth"]
+            self.prev_el = init_vals["elevation"]
+            self.prev_range = init_vals["range"]
             self.prev_delta_x = 0
-            self.prev_lat = 0
-            self.prev_lon = 0
             self.prev_delta_y = 0
+            self.prev_lat = init_vals["lat"]
+            self.prev_lon = init_vals["lon"]
             self.mav_score = 0
             self.n = 0
             self.smoothness_vectors = dict()
@@ -31,9 +32,14 @@ class FeatureVector:
                 "range",
             ]
 
-    def calculate_new_values(
-        self, cur_speed, cur_az, cur_el, cur_range, cur_lat, cur_lon
-    ):
+    def calculate_new_values(self, value_updates):
+        self.n += 1
+        cur_speed = value_updates["speed"]
+        cur_az = value_updates["azimuth"]
+        cur_el = value_updates["elevation"]
+        cur_range = value_updates["range"]
+        cur_lat = value_updates["lat"]
+        cur_lon = value_updates["lon"]
         cur_avg_speed = self.calculate_avg(self.avg_speed, cur_speed, self.n)
         cur_std_speed = self.calculate_std(
             self.std_speed, cur_avg_speed, self.avg_speed, cur_speed, self.n
@@ -61,7 +67,7 @@ class FeatureVector:
         self.std_heading = cur_std_heading
         self.mav_score = self.calculate_mav_factor(cur_avg_speed, cur_std_heading)
 
-    def return_vector(self):
+    def get_feature_vector(self):
         vec = [
             self.avg_speed,
             self.std_speed,
@@ -134,6 +140,7 @@ class FeatureVector:
 
 class SmoothnessVector:
     def __init__(self):
+        # TODO figure out ideal initial values
         self.prev_q = 0
         self.prev_c = 0
         self.prev_m1 = 0
