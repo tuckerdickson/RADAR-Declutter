@@ -31,6 +31,7 @@ class RADARTrack:
                 "elevation",
                 "range",
             ]
+            self.create_smoothness_vectors()
 
     def calculate_new_values(self, value_updates):
         self.n += 1
@@ -91,10 +92,11 @@ class RADARTrack:
     def calculate_avg(self, prev_avg, cur_val, n):
         return ((n - 1) * prev_avg + cur_val) / n
 
+    # TODO fix division by zero error
     def calculate_std(self, prev_std, cur_avg, prev_avg, cur_val, n):
         prev_var = prev_std**2
         numerator = (n - 2) * prev_var + (cur_val - cur_avg) * (cur_val - prev_avg)
-        return np.sqrt(numerator / n - 1)
+        return np.sqrt(numerator / (n - 1))
 
     def calculate_mav_factor(self, cur_avg_speed, cur_std_heading):
         return cur_avg_speed / cur_std_heading
