@@ -1,28 +1,35 @@
-import dictionary
 import model
 from utilities import constants as c
 
+# start of flow of execution, this is what's called from command line
 if __name__ == "__main__":
+    # load the machine learning model (specified by constants.MODEL_PATH)
     model = model.Model(path=c.MODEL_PATH)
+
+    # used to store and parse command line commands
     command = [""]
 
-    # keep looping until the user requests to exit
+    # keep the program going until the user requests to quit
     while command[0] != "quit":
-        # split the input for parsing
+        # get input from command line and split for parsing
         command = input("> ").split()
 
-        # branch based on the command typed in
+        # if the command is inference (i.e., make predictions), use the model to make predictions
         if command[0] == "inference":
+            # for this command, the user must provide paths to input and output files
             try:
                 model.make_inference(command[1], command[2])
             except IndexError:
                 print("error: inference command must include input file and output file.")
 
+        # retrain the model
         elif command[0] == "train":
             print("train")
 
-        elif command[0] == "quit":
-            pass
+        # provide help to the user
+        elif command[0] == "help":
+            print("help")
 
-        else:
+        # any other command (other than quit) is invalid
+        elif command[0] != "quit":
             print("invalid command")
