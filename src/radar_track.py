@@ -8,7 +8,7 @@ class RADARTrack:
             pass
         else:
             # TODO figure out ideal initial values
-            self.avg_speed = 0
+            self.avg_speed = init_vals["speed"]
             self.std_speed = 0
             self.prev_speed = init_vals["speed"]
             self.avg_heading = 0
@@ -22,16 +22,19 @@ class RADARTrack:
             self.prev_lat = init_vals["lat"]
             self.prev_lon = init_vals["lon"]
             self.mav_score = 0
-            self.n = 0
+            self.n = 1
             self.smoothness_vectors = dict()
-            self.list_of_smoothness_features = [
-                "speed",
-                "heading",
-                "azimuth",
-                "elevation",
-                "range",
-            ]
-            self.create_smoothness_vectors()
+            list_of_smoothness_features = {
+                "speed": init_vals["speed"],
+                "heading": 0,
+                "azimuth": init_vals["azimuth"],
+                "elevation": init_vals["elevation"],
+                "range": init_vals["range"],
+            }
+            self.create_smoothness_vectors(list_of_smoothness_features)
+
+    def __len__(self):
+        return self.n
 
     def calculate_new_values(self, value_updates):
         self.n += 1
@@ -47,9 +50,12 @@ class RADARTrack:
         )
         cur_heading = self.calculate_heading(cur_lat, cur_lon)
         cur_avg_heading = self.calculate_avg(self.avg_heading, cur_heading, self.n)
-        cur_std_heading = self.calculate_std(
-            self.std_heading, cur_avg_heading, self.avg_heading, cur_heading, self.n
-        )
+        if self.n > 2:
+            cur_std_heading = self.calculate_std(
+                self.std_heading, cur_avg_heading, self.avg_heading, cur_heading, self.n
+            )
+        else:
+            cur_std_heading = 0
         self.calculate_smoothnesses(
             {
                 "speed": cur_speed,
@@ -66,7 +72,8 @@ class RADARTrack:
         self.std_speed = cur_std_speed
         self.avg_heading = cur_avg_heading
         self.std_heading = cur_std_heading
-        self.mav_score = self.calculate_mav_factor(cur_avg_speed, cur_std_heading)
+        if self.n != 2:
+            self.mav_score = self.calculate_mav_factor(cur_avg_speed, cur_std_heading)
 
     def get_feature_vector(self):
         vec = [
@@ -81,9 +88,9 @@ class RADARTrack:
             vec.append(smoothness_vec.prev_m2)
         return vec
 
-    def create_smoothness_vectors(self):
-        for feature in self.list_of_smoothness_features:
-            self.smoothness_vectors[feature] = SmoothnessVector()
+    def create_smoothness_vectors(self, list_of_smoothness_features):
+        for feature, init_val in list_of_smoothness_features.items():
+            self.smoothness_vectors[feature] = SmoothnessVector(init_val)
 
     def calculate_smoothnesses(self, value_updates):
         for feature, vector in self.smoothness_vectors.items():
@@ -141,13 +148,13 @@ class RADARTrack:
 
 
 class SmoothnessVector:
-    def __init__(self):
+    def __init__(self, init_val):
         # TODO figure out ideal initial values
-        self.prev_q = 0
-        self.prev_c = 0
+        self.prev_q = init_val
+        self.prev_c = init_val
         self.prev_m1 = 0
         self.prev_m2 = 0
-        self.prev_val = 0
+        self.prev_val = init_val
 
     def calculate_new_values(self, cur_val, n):
         cur_q = self.calculate_q(cur_val, n)
@@ -162,13 +169,17 @@ class SmoothnessVector:
     def calculate_smoothness_factor_m1(self, cur_q, cur_val, n):
         return (1 / n) * (
             self.prev_m1 * (n - 1) + (cur_val - self.prev_val - cur_q) ** 2
-        ) ** 2
+        )
 
     def calculate_c(self, cur_val, n):
         return (1 / n) * (self.prev_c * (n - 1) + np.abs(cur_val - self.prev_val))
 
     def calculate_smoothness_factor_m2(self, cur_m1, cur_c):
-        return cur_m1 / cur_c
+        if cur_c != 0:
+            ret_val = cur_m1 / cur_c
+        else:
+            ret_val = 0
+        return ret_val
 
     def update_prevs(self, cur_q, cur_c, cur_m1, cur_m2, cur_val):
         self.prev_q = cur_q
