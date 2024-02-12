@@ -7,6 +7,8 @@ class RADARTrack:
             # implement training feature creation
             pass
         else:
+            self.n = 1
+
             # TODO figure out ideal initial values
             self.avg_speed = init_vals["speed"]
             self.std_speed = 0
@@ -22,7 +24,16 @@ class RADARTrack:
             self.prev_lat = init_vals["lat"]
             self.prev_lon = init_vals["lon"]
             self.mav_score = 0
-            self.n = 1
+
+            self.curvature = 0
+            self.avg_curvature = 0
+            self.curv_updates = []
+            curv_update = dict()
+            curv_update["lat"] = init_vals["lat"]
+            curv_update["lon"] = init_vals["lon"]
+            curv_update["elevation"] = init_vals["elevation"]
+            self.curv_updates.append(curv_update)
+
             self.smoothness_vectors = dict()
             list_of_smoothness_features = {
                 "speed": init_vals["speed"],
@@ -44,10 +55,12 @@ class RADARTrack:
         cur_range = value_updates["range"]
         cur_lat = value_updates["lat"]
         cur_lon = value_updates["lon"]
+
         cur_avg_speed = self.calculate_avg(self.avg_speed, cur_speed, self.n)
         cur_std_speed = self.calculate_std(
             self.std_speed, cur_avg_speed, self.avg_speed, cur_speed, self.n
         )
+
         cur_heading = self.calculate_heading(cur_lat, cur_lon)
         cur_avg_heading = self.calculate_avg(self.avg_heading, cur_heading, self.n)
         if self.n > 2:
@@ -56,6 +69,7 @@ class RADARTrack:
             )
         else:
             cur_std_heading = 0
+
         self.calculate_smoothnesses(
             {
                 "speed": cur_speed,
@@ -65,15 +79,42 @@ class RADARTrack:
                 "range": cur_range,
             }
         )
+
         self.update_prevs(
             cur_speed, cur_heading, cur_az, cur_el, cur_range, cur_lat, cur_lon
         )
+
         self.avg_speed = cur_avg_speed
         self.std_speed = cur_std_speed
+
         self.avg_heading = cur_avg_heading
         self.std_heading = cur_std_heading
+
         if self.n != 2:
             self.mav_score = self.calculate_mav_factor(cur_avg_speed, cur_std_heading)
+
+        curv_update = dict()
+        curv_update["lat"] = value_updates["lat"]
+        curv_update["lon"] = value_updates["lon"]
+        curv_update["elevation"] = value_updates["elevation"]
+        if self.n < 3:
+            self.curv_updates.append(curv_update)
+        elif self.n == 3:
+            self.curv_updates.append(curv_update)
+            a, b, c = self.calculate_euclideans()
+            cur_curvature = self.calculate_curvature(a, b, c)
+            self.avg_curvature = self.calculate_avg(
+                self.avg_curvature, cur_curvature, self.n
+            )
+        else:
+            self.curv_updates[0] = self.curv_updates[1]
+            self.curv_updates[1] = self.curv_updates[2]
+            self.curv_updates.append(curv_update)
+            a, b, c = self.calculate_euclideans()
+            cur_curvature = self.calculate_curvature(a, b, c)
+            self.avg_curvature = self.calculate_avg(
+                self.avg_curvature, cur_curvature, self.n
+            )
 
     def get_feature_vector(self):
         vec = [
@@ -99,11 +140,27 @@ class RADARTrack:
     def calculate_avg(self, prev_avg, cur_val, n):
         return ((n - 1) * prev_avg + cur_val) / n
 
-    # TODO fix division by zero error
     def calculate_std(self, prev_std, cur_avg, prev_avg, cur_val, n):
         prev_var = prev_std**2
         numerator = (n - 2) * prev_var + (cur_val - cur_avg) * (cur_val - prev_avg)
         return np.sqrt(numerator / (n - 1))
+
+    def calculate_euclideans(self):
+        return [
+            self.calculate_euclidean_distance(
+                self.curv_updates[update_1], self.curv_updates[update_2]
+            )
+            for update_1, update_2 in [(1, 2), (2, 3), (1, 3)]
+        ]
+
+    def calculate_euclidean_distance(self, update_1, update_2):
+        term1 = (update_1["lat"] - update_2["lat"]) ** 2
+        term2 = (update_1["lon"] - update_2["lon"]) ** 2
+        term3 = (update_1["elevation"] - update_2["elevation"]) ** 2
+        return np.sqrt(np.sum([term1, term2, term3]))
+
+    def calculate_curvature(self, a, b, c):
+        return np.arccos((a**2 - b**2 - c**2) / (2 * b * c))
 
     def calculate_mav_factor(self, cur_avg_speed, cur_std_heading):
         return cur_avg_speed / cur_std_heading
@@ -143,7 +200,7 @@ class RADARTrack:
         self.prev_az = cur_az
         self.prev_el = cur_el
         self.prev_range = cur_range
-        self.cur_lat = cur_lat
+        self.prev_lat = cur_lat
         self.prev_lon = cur_lon
 
 
