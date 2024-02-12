@@ -123,6 +123,7 @@ class RADARTrack:
             self.avg_heading,
             self.std_heading,
             self.mav_score,
+            self.avg_curvature,
         ]
         for smoothness_vec in self.smoothness_vectors.values():
             vec.append(smoothness_vec.prev_m1)
