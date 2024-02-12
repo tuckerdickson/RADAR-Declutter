@@ -109,7 +109,7 @@ class RADARTrack:
         else:
             self.curv_updates[0] = self.curv_updates[1]
             self.curv_updates[1] = self.curv_updates[2]
-            self.curv_updates.append(curv_update)
+            self.curv_updates[2] = curv_update
             a, b, c = self.calculate_euclideans()
             cur_curvature = self.calculate_curvature(a, b, c)
             self.avg_curvature = self.calculate_avg(
@@ -151,7 +151,7 @@ class RADARTrack:
             self.calculate_euclidean_distance(
                 self.curv_updates[update_1], self.curv_updates[update_2]
             )
-            for update_1, update_2 in [(1, 2), (2, 3), (1, 3)]
+            for update_1, update_2 in [(0, 1), (1, 2), (0, 2)]
         ]
 
     def calculate_euclidean_distance(self, update_1, update_2):
