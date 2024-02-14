@@ -16,6 +16,7 @@ class Dictionary:
             "range": plot["Range"],
             "lat": plot["Position_lat_"],
             "lon": plot["Position_lon_"],
+            "msl_alt": plot["Position_altMSL_"]
         }
         if uuid in self.dictionary:
             self.dictionary[uuid].calculate_new_values(vals)
