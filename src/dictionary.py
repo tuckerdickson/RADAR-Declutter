@@ -1,43 +1,48 @@
 import pandas as pd
 
-import preprocess as pre
+from radar_track import RADARTrack
 
 
 class Dictionary:
     def __init__(self):
-        self.dictionary = {}
+        self.dictionary = dict()
 
     def add_plot(self, uuid, plot):
         # if the uuid is already in the dictionary, add it to the collection
+        vals = {
+            "speed": plot["Speed"],
+            "azimuth": plot["AZ"],
+            "elevation": plot["EL"],
+            "range": plot["Range"],
+            "lat": plot["Position_lat_"],
+            "lon": plot["Position_lon_"],
+            "msl_alt": plot["Position_altMSL_"]
+        }
         if uuid in self.dictionary:
-            combined = pd.concat([self.dictionary[uuid], plot], axis=1, ignore_index=True)
-            self.dictionary[uuid] = combined
+            self.dictionary[uuid].calculate_new_values(vals)
 
         # if the uuid is not in the dictionary, create a new entry for it
         else:
-            self.dictionary[uuid] = plot
+            new_track = RADARTrack(init_vals=vals)
+            self.dictionary[uuid] = new_track
             # TODO: if the maximum number of entries is exceeded, remove the oldest entry
 
     def get_features(self):
         res_list = []
-        for uuid, df in self.dictionary.items():
-            fv = self.get_feature_vector(uuid)
-            res_list.append(fv)
+        for uuid in self.dictionary.keys():
+            res_list.append(self.get_feature_vector(uuid))
 
         return pd.DataFrame(res_list)
 
     def get_feature_vector(self, uuid):
         # raise an exception if the UUID isn't in the dictionary
         if uuid not in self.dictionary:
-            raise Exception(f"The following UUID was not found in the dictionary: {uuid}")
+            raise Exception(
+                f"The following UUID was not found in the dictionary: {uuid}"
+            )
 
-        df = self.dictionary[uuid]
+        track_object = self.dictionary[uuid]
+        fv = [uuid]
+        fv.extend(track_object.get_feature_vector())
 
-        # TODO: calculate feature vectors
-        avg_speed = pre.calculate_avg_speed(df)
-        std_speed = pre.calculate_std_speed(df)
-        std_heading = pre.calculate_std_heading(df)
-        mav_factor = pre.calculate_mav_factor(df)
-
-        feature_vector = [uuid, avg_speed, std_speed, std_heading, mav_factor]
-        return feature_vector
+        return fv
