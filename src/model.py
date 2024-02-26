@@ -8,7 +8,7 @@ from utilities import constants as c
 
 class Model:
     def __init__(self, path):
-        self.model_path = path  # the path to the model
+        self.model_path = path  # the path to the model file
         self.model = self.load_model()  # the actual model
         self.records = dictionary.Dictionary()  # dictionary that stores historic radar data
 
@@ -48,6 +48,9 @@ class Model:
 
         feature_df.set_index(0, inplace=True)
         feature_df.columns = c.FEATURE_NAMES
+
+        print(feature_df)
+        return
 
         # make predictions with classifier
         predictions = self.model.predict(feature_df)
