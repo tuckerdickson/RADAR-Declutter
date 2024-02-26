@@ -35,22 +35,29 @@ class Model:
             print(error)
             return None
 
-        # drop appropriate columns (commented for now because the current model uses all fields in the combined data)
-        df = input_df.drop(columns=c.DROP_COLUMNS, errors='ignore')
+        # "clean" the data by dropping unnecessary columns, etc...
+        df = input_df.copy()
+        df = pre.clean_df(df)
 
         # add plots to dictionary
+        curr_uuids = []
         for idx, row in df.iterrows():
             uuid = row["UUID"]
             self.records.add_plot(uuid, row)
+            curr_uuids.append(uuid)
 
-        # calculate feature vectors
-        feature_df = self.records.get_features()
+        # calculate feature vectors for the objects present
+        feature_df = self.records.get_features(curr_uuids)
 
+        # set the column names appropriately for the classifier
         feature_df.set_index(0, inplace=True)
         feature_df.columns = c.FEATURE_NAMES
 
-        print(feature_df)
-        return
+        # keep only the features that the classifier was trained on
+        feature_df = feature_df[c.CLASSIFIER_FEATURES]
+
+        # print(feature_df)
+        # return
 
         # make predictions with classifier
         predictions = self.model.predict(feature_df)
@@ -60,6 +67,9 @@ class Model:
         # add the prediction to input data
         input_df["Prediction"] = predictions
         input_df["Confidence"] = max_conf_levels
+
+        print(input_df)
+        return
 
         # output the augmented dataframe as a csv
         input_df.to_csv(output_path, index=False)

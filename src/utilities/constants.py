@@ -7,7 +7,7 @@ DROP_COLUMNS = ['Name', 'Create Time', 'User Edit Time', 'Type', 'Associated UUI
 
 MODEL_PATH = '../models/feb9_fv.sav'
 
-FEATURE_NAMES = ['avg_speed', 'std_speed', 'avg_heading', 'std_heading', 'mav_score', 'avg_curvature',
+FEATURE_NAMES = ['avg_speed', 'std_speed', 'avg_heading', 'std_heading', 'mav_factor', 'avg_curvature',
                  'm1_speed', 'm2_speed', 'm1_heading', 'm2_heading', 'm1_azimuth', 'm2_azimuth',
                  'm1_elevation', 'm2_elevation', 'm1_range', 'm2_range']
 

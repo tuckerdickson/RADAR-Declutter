@@ -1,3 +1,5 @@
+import readline
+
 import model
 from utilities import constants as c
 
