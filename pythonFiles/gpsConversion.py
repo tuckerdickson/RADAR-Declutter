@@ -8,23 +8,23 @@ import glob
 from geopy import distance 
 import math
 
-in_gpsData = ['..\data/raw/gps/GPSData1.csv', '..\data/raw/gps/GPSData2.csv', '..\data/raw/gps/GPSData3.csv', '..\data/raw/gps/GPSData4.csv', '..\data/raw/gps/GPSData5.csv', '..\data/raw/gps/GPSData6.csv']
-
-generativeCycles = 5
-scalingRange = [0.5, 2.5]
+# Command line arguments
 
 parser = argparse.ArgumentParser(
                     prog='GPS Conversion',
                     description='Coverts GPS Data to a format resembling processed RADAR data. Files are pulled from data/raw/gps or the provided directory.')
 
 parser.add_argument('-l', '--trackLength', type=int, default=20, help="Tracks will be split into pieces of size trackLength.")
-parser.add_argument('-low', '--scalingLowerBound', type=float, default=1, help="Lower bound of the multiplier for scaling of input data.")
-parser.add_argument('-high', '--scalingUpperBound', type=float, default=1, help="Upper bound of the multiplier for scaling of input data.")
+parser.add_argument('-n', '--noise', type=float, default=0.2, help="Random noise magnitude")
+parser.add_argument('-scaleLow', '--scalingLowerBound', type=int, default=1, help="Lower bound of the multiplier for scaling of input data.")
+parser.add_argument('-scaleHigh', '--scalingUpperBound', type=int, default=2.5, help="Upper bound of the multiplier for scaling of input data.")
 parser.add_argument('-r', '--reverseTracks', type=bool, default=False, help="Adds reversed versions of each track to the output.")
-parser.add_argument('-c', '--cycles', type=int, default=1)
+parser.add_argument('-sampleLow', '--samplingLowerBound', type=int, default=2, help="Lower bound for sampling rate.")
+parser.add_argument('-sampleHigh', '--samplingUpperBound', type=int, default=2, help="Upper bound for sampling rate.")
+parser.add_argument('-c', '--cycles', type=int, default=5, help="Determines number of variations used for scaling/sampling")
 
 parser.add_argument('-in', "--inPath", type=str, default='../data/raw/gps/unprocessed', nargs='+', help="Processed all files in this directory")
-parser.add_argument('-out', "--outName", type=str, default='processedGPSData', nargs='+', help="Output filename")
+parser.add_argument('-out', "--outName", type=str, default='processedGPSData', nargs='+', help="Output filename, automatically appends .csv")
 
 parser.add_argument('-f', '--files', help='-f is buggy with Jupyter. Ignore this')
 
@@ -33,12 +33,6 @@ args = parser.parse_args()
  # Parse paths
 files = set()
 files |= set(glob.glob(args.inPath + '/*' + '.csv'))
-
-# ecco fields deemed not important by aaron
-NI_ECCO = ['User Edit Time', 'Type', 'Associated UUID', 'Note', 'Combat ID', 
-           'Creator', 'Editor', 'AZ', 'Range', '2525', 'Closest Distance', 
-           'Course', 'AIS MMSI', 'AIS IMO', 'AIS Call Sign', 'AIS Ship Type', 
-           'AIS Destination', 'AIS ETA', 'Fused', 'Fused Tracks']
 
 NI_GPS = ['datetime(utc)', 'height_above_takeoff(feet)', 
           'height_above_ground_at_drone_location(feet)', 
@@ -54,34 +48,6 @@ NI_GPS = ['datetime(utc)', 'height_above_takeoff(feet)',
           'voltageCell1', 'voltageCell2', 'voltageCell3', 'voltageCell4',
           'voltageCell5', 'voltageCell6', 'current(A)', 'battery_temperature(f)',
           'altitude(feet)', 'ascent(feet)', 'flycStateRaw', 'flycState', 'message']
-
-# fields that only have one or two unique values:
-# Source Name:  ['RPS82-90deg' 'ctcve']
-# Source Class: ['RADAR']
-# Source LID:   [21. 49.]
-# Closest Time: [0.]
-REPEAT_ECCO = ['Source Name', 'Source Class', 'Source LID', 'Closest Time']
-
-# all other ecco fields (aside from position, velocity, heading)
-OTHER_ECCO = ['Name', 'Create Time', 'Object ID', 'Origin Position (lat)',
-              'Origin Position (lon)', 'Origin Position (alt MSL)', 'Radar Cross Section',
-              'Source ID', 'Deleted', 'Deleted Time']
-
-# the ecco fields related to time
-TIME_COLS = ['Create Time', 'Update Time', 'Deleted Time']
-
-# mapping between ecco and simulated
-ECCO_SIMU_MAP = {
-    'Update Time': 'UpdateTime',
-    'Range To Contact': 'Range',
-    'Bearing To Contact': 'AZ',
-    'EL': 'EL',
-    'Position (lat)': 'Position_lat_',
-    'Position (lon)': 'Position_lon_',
-    'Position (alt MSL)': 'Position_altMSL_',
-    'Speed': 'Speed',
-    'Radial Velocity': 'RadialVelocity'
-}
 
 GPS_MAP = {
     'time(millisecond)': 'UpdateTime',
@@ -120,14 +86,23 @@ gpsData = files
 
 generativeCycles = args.cycles
 scalingRange = [args.scalingLowerBound, args.scalingUpperBound]
+samplingRange = [args.samplingLowerBound, args.samplingUpperBound]
 
-#Take every 10th row from each .csv (1s intervals), leaving out first and last 10 seconds
-for data in gpsData:
-    gpsTracks.append(pd.read_csv(data).iloc[200:-200:10, :])
-
+#Loops for number of generativeCycles
 for rep in range(generativeCycles):
-    print("Beginning cycle " + str(rep+1) + ". Current scaling: " + str(scalingRange[0] + (scalingRange[1]-scalingRange[0])/max(generativeCycles-1, 1)*rep))
+    #Determine sampling/scaling values
+    sampling = samplingRange[0] + (samplingRange[1]-samplingRange[0])/(generativeCycles-1)*rep
+    scale = scalingRange[0] + (scalingRange[1]-scalingRange[0])/(generativeCycles-1)*rep
 
+    print("Beginning cycle " + str(rep+1) + ".")
+    print("Current scaling: " + str(scale))
+    print("Current sampling rate: " + str(sampling))
+
+    #picks every (samplingRate)th track, leaving out the first 20s of each track
+    for data in gpsData:
+        gpsTracks.append(pd.read_csv(data).iloc[200:-200:int(sampling), :])
+
+    #Loops through each file (each file is one track)
     for track in gpsTracks:
         data = track.copy()
 
@@ -140,10 +115,10 @@ for rep in range(generativeCycles):
         latNew = [None] * len(data)
         longNew = [None] * len(data)
         altNew = [None] * len(data)
+
         radarLat = np.random.uniform(-0.04, 0.04) + data['latitude'].iat[0]
         radarLon = np.random.uniform(-0.04, 0.04) + data['longitude'].iat[0]
         radarAlt = np.random.uniform(-200, 200) + data['altitude_above_seaLevel(feet)'].iat[0]
-        scale = scalingRange[0] + (scalingRange[1]-scalingRange[0]+1)/(max(generativeCycles-1, 1))*rep
 
         lastDiffX = 0
         lastDiffY = 0
@@ -153,17 +128,19 @@ for rep in range(generativeCycles):
         longNew[0] = data['longitude'].iat[0]
         altNew[0] = data['altitude_above_seaLevel(feet)'].iat[0]
 
+        #Used to match lat/lon with scaled speed (currently does not account for fast sampling)
         for i in range(len(data)-1):
             latNew[i+1] = scale*(data['latitude'].iat[i+1]-data['latitude'].iat[i]) + latNew[i]
             longNew[i+1] = scale*(data['longitude'].iat[i+1]-data['longitude'].iat[i]) + longNew[i]
             altNew[i+1] = scale*(data['altitude_above_seaLevel(feet)'].iat[i+1]-data['altitude_above_seaLevel(feet)'].iat[i]) + altNew[i]
-            #if (data['speed(mph)'].iat[i] == 0):
-            #    data['speed(mph)'].iat[i] = distance.distance([data['longitude'].iat[i+1], data['latitude'].iat[i+1]], [data['longitude'].iat[i], data['latitude'].iat[i]]).m
+            #Random noise
+            data['speed(mph)'].iat[i] = max(data['speed(mph)'].iat[i] + np.random.normal(0, args.noise), 0)
+            #data['speed(mph)'].iat[i] = (10/sampling) * distance.geodesic([data['longitude'].iat[i+1], data['latitude'].iat[i+1]], [data['longitude'].iat[i], data['latitude'].iat[i]]).meters
 
         data['latitude'] = latNew
         data['longitude'] = longNew
         data['altitude_above_seaLevel(feet)'] = altNew
-        data['speed(mph)'] *= scale
+        data['speed(mph)'] *= scale#*sampling/10
 
         #Split every 20th track
         for i in range(len(data)):
@@ -192,6 +169,7 @@ for rep in range(generativeCycles):
 
             # speed unit conversion
             data['speed(mph)'].iat[i]*=0.44704
+            #data['speed(mph)'].iat[i] = max(data['speed(mph)'].iat[i] + np.random.normal(0, args.noise), 0)
 
         data['UUID'] = track_IDs
         data['Range'] = ranges
@@ -211,6 +189,8 @@ for rep in range(generativeCycles):
             data_r['time(millisecond)'] = data['time(millisecond)'].values[::-1]
 
             finalTracks.append(data_r.iloc[1:])
+            
+    gpsTracks = []
 
 df_gps = pd.concat(finalTracks, ignore_index=True)
 df_gps = df_gps.sort_values(by='time(millisecond)', ascending=True)
@@ -222,7 +202,5 @@ df_gps = df_gps.drop(columns=NI_GPS)
 # rename all of the gps columns to match ecco
 df_gps = df_gps.rename(columns=GPS_MAP, errors='raise')
 
-# save to csv
 df_gps.to_csv('..\data/raw/gps/processed/' + args.outName + ".csv", index=False)
-
 print("Saved file to ../data/raw/gps/processed/" + args.outName + ". File contains " + str(len(df_gps)) + " updates.")
