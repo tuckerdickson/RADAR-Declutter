@@ -3,64 +3,54 @@ import sys
 import time
 
 import matplotlib.pyplot as plt
-
 from matplotlib.animation import FuncAnimation
 
+from . import constants
 
-def run_tests(in_path, out_path, model):
-    if not os.path.isdir(in_path):
-        print(f"Error: {in_path} is not a valid directory path.")
+
+class Demo:
+    def __init__(self, input_path, output_path, model):
+        self.input_path = input_path
+        self.output_path = output_path
+        self.model = model
+
+        self.input_files = sorted(os.listdir(input_path))
+        self.tracks = {}
+
+    def run_tests(self):
+        if not os.path.isdir(self.input_path):
+            print(f"Error: {self.input_path} is not a valid directory path.")
+            return
+
+        if not os.path.isdir(self.output_path):
+            print(f"Error: {self.output_path} is not a valid directory path.")
+            return
+
+        ani = FuncAnimation(plt.gcf(), self.run_test, frames=len(self.input_files), repeat=False, interval=1000)
+        plt.show()
+
+    def run_test(self, frame):
+        in_file = os.path.join(self.input_path, self.input_files[frame])
+        out_file = os.path.join(self.output_path, self.input_files[frame])
+
+        df = self.model.make_inference(in_file, out_file, demo=True)
+
+        plt.cla()
+        plt.xlim(constants.DEMO_PLOT_X_LOWER, constants.DEMO_PLOT_X_UPPER)
+        plt.ylim(constants.DEMO_PLOT_Y_LOWER, constants.DEMO_PLOT_Y_UPPER)
+
+        for idx, row in df.iterrows():
+            uuid = row["UUID"]
+            x = row["Position (lat)"]
+            y = row["Position (lon)"]
+
+            if uuid in self.tracks:
+                self.tracks[uuid]["xs"].append(x)
+                self.tracks[uuid]["ys"].append(y)
+            else:
+                self.tracks[uuid] = {"xs": [x], "ys": [y]}
+
+            # print(f"{uuid}: ({x}, {y})")
+            plt.plot(self.tracks[uuid]["xs"], self.tracks[uuid]["ys"], '-')
+
         return
-
-    if not os.path.isdir(out_path):
-        print(f"Error: {out_path} is not a valid directory path.")
-        return
-
-    in_files = sorted(os.listdir(in_path))
-
-    xs = []
-    ys = []
-
-    ani = FuncAnimation(plt.gcf(), run_test, fargs=(xs, ys), interval=1000)  # Update every 1000 milliseconds (1 second)
-    plt.show()
-
-    # for file in in_files:
-        # print(f"Processing {file}")
-        # in_file = os.path.join(in_path, file)
-        # out_file = os.path.join(out_path, file)
-        #
-        # run_test(in_file, out_file, model)
-        # time.sleep(1)
-        # input("Press any key to continue...\n")
-
-
-def run_test(frame, xs, ys):
-    plt.cla()
-
-    xs.append(frame)
-    ys.append(frame)
-
-    plt.plot(xs, ys, 'bo')
-    plt.xlim(0, 10)  # Example limits for the X-axis
-    plt.ylim(0, 10)
-
-    # plt.legend(loc='upper left')
-    # plt.tight_layout()
-
-
-# def run_test(file_path, out_path, model):
-    # results = model.make_inference(file_path, out_path, demo=True)
-    #
-    # for idx, row in results.iterrows():
-    #     pred_class = "Drone" if row["Prediction"] else "Bird"
-    #     # print(f"{pred_class}: {100 * row["Confidence"]}%")
-    #
-    #     plot_point(row["Position (lat)"], row["Position (lon)"])
-
-    return
-
-
-def plot_point(x, y):
-    plt.plot(x, y, "ro")
-    plt.show()
-    # print(f"Plotting point: {x}, {y}")

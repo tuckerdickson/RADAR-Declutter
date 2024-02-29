@@ -29,9 +29,12 @@ if __name__ == "__main__":
         elif command[0] == "demo":
             # for this command, the user must provide paths to input and output directories
             try:
-                demo.run_tests(command[1], command[2], model)
+                d = demo.Demo(command[1], command[2], model)
             except IndexError:
                 print("error: demo command must include input file and output directory.")
+                continue
+
+            d.run_tests()
 
         # retrain the model
         elif command[0] == "train":
