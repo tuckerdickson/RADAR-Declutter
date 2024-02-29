@@ -1,12 +1,13 @@
 import readline
 
 import model
-from utilities import constants as c
+from utilities import constants
+from utilities import demo
 
 # start of flow of execution, this is what's called from command line
 if __name__ == "__main__":
     # load the machine learning model (specified by constants.MODEL_PATH)
-    model = model.Model(path=c.MODEL_PATH)
+    model = model.Model(path=constants.MODEL_PATH)
 
     # used to store and parse command line commands
     command = [""]
@@ -23,6 +24,14 @@ if __name__ == "__main__":
                 model.make_inference(command[1], command[2])
             except IndexError:
                 print("error: inference command must include input file and output file.")
+
+        # run the demonstration simulation
+        elif command[0] == "demo":
+            # for this command, the user must provide paths to input and output directories
+            try:
+                demo.run_tests(command[1], command[2], model)
+            except IndexError:
+                print("error: demo command must include input file and output directory.")
 
         # retrain the model
         elif command[0] == "train":

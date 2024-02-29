@@ -24,7 +24,7 @@ class Model:
             print(f"no model found at {self.model_path}")
             return None
 
-    def make_inference(self, input_path, output_path):
+    def make_inference(self, input_path, output_path, demo=False):
         # try to read the input csv into a dataframe
         try:
             input_df = pre.read_df(input_path)
@@ -68,8 +68,9 @@ class Model:
         input_df["Prediction"] = predictions
         input_df["Confidence"] = max_conf_levels
 
-        print(input_df)
-        return
+        # if running demonstration, return the data so that results can be displayed
+        if demo:
+            return input_df
 
-        # output the augmented dataframe as a csv
+        # otherwise, output the augmented dataframe as a csv
         input_df.to_csv(output_path, index=False)
