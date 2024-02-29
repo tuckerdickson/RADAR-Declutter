@@ -29,7 +29,7 @@ class Demo:
 
         fig, axes = plt.subplots(nrows=1,
                                  ncols=2,
-                                 figsize=(10, 8),
+                                 figsize=(14, 8),
                                  gridspec_kw={'width_ratios': [2, 1]})
         axes[1].axis('off')
 
@@ -38,14 +38,18 @@ class Demo:
                             fargs=(axes[0], axes[1]),
                             frames=len(self.input_files),
                             repeat=False,
-                            interval=1000)
+                            interval=2000)
         plt.show()
 
     def run_test(self, frame, ax1, ax2):
         in_file = os.path.join(self.input_path, self.input_files[frame])
         out_file = os.path.join(self.output_path, self.input_files[frame])
 
+        start = time.time()
         df = self.model.make_inference(in_file, out_file, demo=True)
+        end = time.time()
+
+        elapsed = end - start
 
         ax1.cla()
         ax1.set_xlim(constants.DEMO_PLOT_X_LOWER, constants.DEMO_PLOT_X_UPPER)
@@ -73,6 +77,9 @@ class Demo:
             ax1.plot(self.tracks[uuid]["xs"], self.tracks[uuid]["ys"], '-')
             table_data.append([uuid[0:5], self.tracks[uuid]["count"], pred, conf])
 
+        ax1.set_title(f"File: {self.input_files[frame]}\n" +
+                      f"Objects present: {len(df)}\n" +
+                      f"Process Time: {elapsed:.4f} seconds\n")
         ax2.table(cellText=table_data,
                   colLabels=self.table_cols,
                   loc='top')
