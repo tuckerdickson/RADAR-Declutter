@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 
 class RADARTrack:
@@ -8,8 +9,8 @@ class RADARTrack:
             pass
         else:
             self.n = 1
+            self.last_update = time.time()
 
-            # TODO figure out ideal initial values
             self.avg_speed = init_vals["speed"]
             self.std_speed = 0
             self.prev_speed = init_vals["speed"]
@@ -50,6 +51,7 @@ class RADARTrack:
 
     def calculate_new_values(self, value_updates):
         self.n += 1
+        self.last_update = time.time()
         cur_speed = value_updates["speed"]
         cur_az = value_updates["azimuth"]
         cur_el = value_updates["elevation"]
@@ -217,6 +219,9 @@ class RADARTrack:
         self.prev_lon = cur_lon
         self.prev_msl_alt = cur_msl_alt
 
+    def past_stale_time(self):
+        dif = time.time() - self.last_update
+        return dif > 60
 
 class SmoothnessVector:
     def __init__(self, init_val):
