@@ -3,3 +3,4 @@
 src/__pycache__/
 /data/raw/crane/Marked_Radar_Data.csv
 /data/raw/crane/Hostile_Radar_Data.csv
+data/raw/crane/NO_INTERP_Hostile_Radar_Data.csv
