@@ -24,7 +24,7 @@ class RADARTrack:
             self.prev_lat = init_vals["lat"]
             self.prev_lon = init_vals["lon"]
             self.prev_msl_alt = init_vals["msl_alt"]
-            self.mav_score = 0
+            self.mav_factor = 0
 
             self.curvature = 0
             self.avg_curvature = 0
@@ -100,7 +100,7 @@ class RADARTrack:
         self.std_heading = cur_std_heading
 
         if self.n != 2:
-            self.mav_score = self.calculate_mav_factor(cur_avg_speed, cur_std_heading)
+            self.mav_factor = self.calculate_mav_factor(cur_avg_speed, cur_std_heading)
 
         curv_update = dict()
         curv_update["lat"] = value_updates["lat"]
@@ -131,7 +131,7 @@ class RADARTrack:
             self.std_speed,
             self.avg_heading,
             self.std_heading,
-            self.mav_score,
+            self.mav_factor,
             self.avg_curvature,
         ]
         for smoothness_vec in self.smoothness_vectors.values():

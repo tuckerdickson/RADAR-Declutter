@@ -1,5 +1,8 @@
 import os
+
 import pandas as pd
+
+from utilities import constants as c
 
 
 def read_df(file_path):
@@ -10,5 +13,5 @@ def read_df(file_path):
         raise FileNotFoundError(f"Error: {file_path} not found")
 
 
-def drop_columns(df, columns):
-    return df.drop(columns=columns)
+def clean_df(df):
+    return df.drop(columns=c.DROP_COLUMNS)

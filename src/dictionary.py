@@ -14,9 +14,9 @@ class Dictionary:
             "azimuth": plot["AZ"],
             "elevation": plot["EL"],
             "range": plot["Range"],
-            "lat": plot["Position_lat_"],
-            "lon": plot["Position_lon_"],
-            "msl_alt": plot["Position_altMSL_"]
+            "lat": plot["Position (lat)"],
+            "lon": plot["Position (lon)"],
+            "msl_alt": plot["Position (alt MSL)"]
         }
         if uuid in self.dictionary:
             self.dictionary[uuid].calculate_new_values(vals)
@@ -27,9 +27,9 @@ class Dictionary:
             self.dictionary[uuid] = new_track
             # TODO: if the maximum number of entries is exceeded, remove the oldest entry
 
-    def get_features(self):
+    def get_features(self, curr_uuids):
         res_list = []
-        for uuid in self.dictionary.keys():
+        for uuid in curr_uuids:
             res_list.append(self.get_feature_vector(uuid))
 
         return pd.DataFrame(res_list)
