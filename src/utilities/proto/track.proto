@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+message Tracks {
+    repeated Update updates = 1;
+    message Update {
+        optional string uuid = 1;
+   	
+      	optional string name = 2;
+    	optional string create_time = 3;
+    	optional string update_time = 4;
+    	optional string user_edit_time = 5;
+    	optional string type = 6;
+    	optional string associated_uuid = 7;
+    	optional string note = 8;
+    	optional string source_name = 9;
+    	optional string source_class = 10;
+    	optional uint32 source_lid = 11;
+    	optional string combat_id = 12;
+    	optional string object_id = 13;
+    	
+    	optional float range_to_contact = 14;
+    	optional float bearing_to_contact = 15;
+    	
+    	optional string creator = 16;
+    	optional string editor = 17;
+    	
+    	optional float az = 18;
+    	optional float el = 19;
+    	optional float range = 20;
+    	optional float position_lat = 21;
+    	optional float position_lon = 22;
+    	optional uint32 position_alt_msl = 23;
+    	
+    	optional float origin_position_lat = 24;
+    	optional float origin_position_lon = 25;
+    	optional float origin_position_alt_msl = 26;
+    	optional string _2525 = 27;
+    	
+    	optional float speed = 28;
+    	optional float radar_cross_section = 29;
+    	
+    	optional uint32 closest_time = 30;
+    	optional string course = 31;
+    	optional uint32 source_id = 32;
+    	
+    	optional float radial_velocity = 33;
+    	optional float closest_distance = 34;
+    
+    	optional bool deleted = 35;
+    	optional string deleted_time = 36;
+    
+    	optional uint32 ais_mmsi = 37;
+    	optional uint32 ais_imo = 38;
+    	optional uint32 ais_call_sign = 39;
+    	optional uint32 ais_ship_type = 40;
+    	optional uint32 ais_destination = 41;
+    	optional uint32 ais_eta = 42;
+    	
+    	optional bool fused = 43;
+    	optional string fused_tracks = 44;
+    
+    	optional uint32 prediction = 45;
+    	optional float confidence = 46;
+    }
+}
+
+

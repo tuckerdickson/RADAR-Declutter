@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+message Updates {
+	repeated TrackUpdate tracks = 1;
+	
+	message TrackUpdate {
+		optional string uuid = 1;
+		optional float range = 2;
+		optional uint32 position_alt_msl = 3;
+		optional float speed = 4;
+		optional bool deleted = 5;
+	}
+}
