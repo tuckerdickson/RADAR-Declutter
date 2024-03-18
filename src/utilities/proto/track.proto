@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 message Tracks {
-    repeated Update updates = 1;
+    repeated Update track = 1;
     message Update {
         optional string uuid = 1;
    	
