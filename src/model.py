@@ -49,15 +49,15 @@ class Model:
         # calculate feature vectors for the objects present
         feature_df = self.records.get_features(curr_uuids)
 
-        # set the column names appropriately for the classifier
+        # set the column names for the returned feature df
         feature_df.set_index(0, inplace=True)
-        feature_df.columns = c.FEATURE_NAMES
+        feature_df.columns = c.RETURNED_FEATURES
 
-        # keep only the features that the classifier was trained on
-        feature_df = feature_df[c.CLASSIFIER_FEATURES]
+        # rename the columns to match what the current classifier expects
+        feature_df.rename(columns=c.FEATURE_MAP, inplace=True)
 
-        # print(feature_df)
-        # return
+        # reorder the columns to match what the current classifier expects
+        feature_df = feature_df[c.USE_FEATURES]
 
         # make predictions with classifier
         predictions = self.model.predict(feature_df)

@@ -13,37 +13,39 @@ if __name__ == "__main__":
     command = [""]
 
     # keep the program going until the user requests to quit
-    while command[0] != "quit":
+    while len(command) == 0 or command[0] != "quit":
         # get input from command line and split for parsing
         command = input("> ").split()
 
-        # if the command is inference (i.e., make predictions), use the model to make predictions
-        if command[0] == "inference":
-            # for this command, the user must provide paths to input and output files
-            try:
-                model.make_inference(command[1], command[2])
-            except IndexError:
-                print("error: inference command must include input file and output file.")
+        # make sure the user typed something in
+        if len(command) > 0:
+            # if the command is inference (i.e., make predictions), use the model to make predictions
+            if command[0] == "inference":
+                # for this command, the user must provide paths to input and output files
+                try:
+                    model.make_inference(command[1], command[2])
+                except IndexError:
+                    print("error: inference command must include input file and output file.")
 
-        # run the demonstration simulation
-        elif command[0] == "demo":
-            # for this command, the user must provide paths to input and output directories
-            try:
-                d = demo.Demo(command[1], command[2], model)
-            except IndexError:
-                print("error: demo command must include input file and output directory.")
-                continue
+            # run the demonstration simulation
+            elif command[0] == "demo":
+                # for this command, the user must provide paths to input and output directories
+                try:
+                    d = demo.Demo(command[1], command[2], model)
+                except IndexError:
+                    print("error: demo command must include input file and output directory.")
+                    continue
 
-            d.run_tests()
+                d.run_tests()
 
-        # retrain the model
-        elif command[0] == "train":
-            print("train")
+            # retrain the model
+            elif command[0] == "train":
+                print("train")
 
-        # provide help to the user
-        elif command[0] == "help":
-            print("help")
+            # provide help to the user
+            elif command[0] == "help":
+                print("help")
 
-        # any other command (other than quit) is invalid
-        elif command[0] != "quit":
-            print("invalid command")
+            # any other command (other than quit) is invalid
+            elif command[0] != "quit":
+                print("invalid command")

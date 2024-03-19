@@ -1,9 +1,11 @@
 import os
-import sys
 import time
 
 import matplotlib.pyplot as plt
+import numpy as np
+
 from matplotlib.animation import FuncAnimation
+from sklearn import metrics
 
 from . import constants
 
@@ -16,7 +18,7 @@ class Demo:
 
         self.input_files = sorted(os.listdir(input_path))
         self.tracks = {}
-        self.table_cols = ["UUID", "Update #", "Prediction", "Confidence"]
+        self.table_cols = ["UUID", "Update #", "Ground Truth", "Prediction", "Confidence"]
 
     def run_tests(self):
         if not os.path.isdir(self.input_path):
@@ -54,6 +56,7 @@ class Demo:
         ax1.cla()
         ax1.set_xlim(constants.DEMO_PLOT_X_LOWER, constants.DEMO_PLOT_X_UPPER)
         ax1.set_ylim(constants.DEMO_PLOT_Y_LOWER, constants.DEMO_PLOT_Y_UPPER)
+        ax1.set_title("temp")
 
         table_data = []
         for idx, row in df.iterrows():
@@ -62,7 +65,8 @@ class Demo:
             x = row["Position (lat)"]
             y = row["Position (lon)"]
 
-            pred = row["Prediction"]
+            gt = "Bird" if row["Class"] == 0 else "Drone"
+            pred = "Bird" if row["Prediction"] == 0 else "Drone"
             conf = row["Confidence"]
 
             if uuid in self.tracks:
@@ -74,13 +78,26 @@ class Demo:
                                      "ys": [y],
                                      "count": 0}
 
-            ax1.plot(self.tracks[uuid]["xs"], self.tracks[uuid]["ys"], '-')
-            table_data.append([uuid[0:5], self.tracks[uuid]["count"], pred, conf])
+            ax1.plot(self.tracks[uuid]["xs"], self.tracks[uuid]["ys"], '-', markersize=20)
+            table_data.append([uuid[0:5], self.tracks[uuid]["count"], gt, pred, conf])
 
-        ax1.set_title(f"File: {self.input_files[frame]}\n" +
-                      f"Objects present: {len(df)}\n" +
-                      f"Process Time: {elapsed:.4f} seconds\n")
+        ax2.cla()
+        ax2.axis('off')
         ax2.table(cellText=table_data,
                   colLabels=self.table_cols,
                   loc='top')
+
+        accuracy = metrics.accuracy_score(df["Class"], df["Prediction"])
+        f1 = metrics.f1_score(df["Class"], df["Prediction"], zero_division=0)
+
+        txt = f"""Time = {frame+1} ({self.input_files[frame]})\n
+        \n
+        Objects present: {len(df)}\n
+        Process Time: {elapsed:.4f} seconds\n
+        \n
+        Accuracy: {accuracy:.2f}
+        F1 Score:{f1:.2f}
+        Average confidence: {df["Confidence"].mean():.2f}"""
+
+        ax2.text(0, 0, txt, bbox={'facecolor': 'red', 'alpha': 0.5, 'pad': 10})
         return
