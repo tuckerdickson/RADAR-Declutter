@@ -32,7 +32,7 @@ class Demo:
         fig, axes = plt.subplots(nrows=1,
                                  ncols=2,
                                  figsize=(14, 8),
-                                 gridspec_kw={'width_ratios': [2, 1]})
+                                 gridspec_kw={'width_ratios': [1.5, 1]})
         axes[1].axis('off')
 
         ani = FuncAnimation(fig,
@@ -40,7 +40,7 @@ class Demo:
                             fargs=(axes[0], axes[1]),
                             frames=len(self.input_files),
                             repeat=False,
-                            interval=2000)
+                            interval=1000)
         plt.show()
 
     def run_test(self, frame, ax1, ax2):
@@ -78,14 +78,18 @@ class Demo:
                                      "ys": [y],
                                      "count": 0}
 
-            ax1.plot(self.tracks[uuid]["xs"], self.tracks[uuid]["ys"], '-', markersize=20)
+            marker = 'b-' if row["Class"] == 0 else 'r-'
+            ax1.plot(self.tracks[uuid]["xs"], self.tracks[uuid]["ys"], marker, markersize=20)
             table_data.append([uuid[0:5], self.tracks[uuid]["count"], gt, pred, conf])
 
         ax2.cla()
         ax2.axis('off')
+
+        bbox = [0, 0, 1, 0.05*(1+len(df))]
         ax2.table(cellText=table_data,
                   colLabels=self.table_cols,
-                  loc='top')
+                  bbox=bbox,
+                  loc='center')
 
         accuracy = metrics.accuracy_score(df["Class"], df["Prediction"])
         f1 = metrics.f1_score(df["Class"], df["Prediction"], zero_division=0)
@@ -99,5 +103,5 @@ class Demo:
         F1 Score:{f1:.2f}
         Average confidence: {df["Confidence"].mean():.2f}"""
 
-        ax2.text(0, 0, txt, bbox={'facecolor': 'red', 'alpha': 0.5, 'pad': 10})
+        ax2.text(0, 0.65, txt, bbox={'facecolor': 'red', 'alpha': 0.5, 'pad': 10})
         return

@@ -1,10 +1,10 @@
-DEMO_PLOT_X_LOWER = 38.92
+DEMO_PLOT_X_LOWER = 38.904
 
-DEMO_PLOT_X_UPPER = 38.90
+DEMO_PLOT_X_UPPER = 38.910
 
-DEMO_PLOT_Y_LOWER = -86.87
+DEMO_PLOT_Y_LOWER = -86.872
 
-DEMO_PLOT_Y_UPPER = -86.85
+DEMO_PLOT_Y_UPPER = -86.860
 
 DROP_COLUMNS = ['Name', 'Create Time', 'User Edit Time', 'Type', 'Associated UUID', 'Note', 'Source Name',
                 'Source Class', 'Source LID', 'Combat ID', 'Object ID', 'Range To Contact', 'Bearing To Contact',

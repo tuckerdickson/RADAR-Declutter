@@ -12,3 +12,5 @@ data/processed/crane/bird_drone_20.csv
 /data/processed/crane/Marked_Radar_Data_Drones.csv
 
 /data/raw/demo/
+
+/notebooks/FeatureVectors.ipynb
