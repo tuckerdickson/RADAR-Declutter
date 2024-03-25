@@ -58,6 +58,7 @@ class Model:
 
         # reorder the columns to match what the current classifier expects
         feature_df = feature_df[c.USE_FEATURES]
+        feature_df.fillna(0, inplace=True)
 
         # make predictions with classifier
         predictions = self.model.predict(feature_df)
