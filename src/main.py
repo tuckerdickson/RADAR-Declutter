@@ -1,8 +1,9 @@
 import readline
 
 import model
-from utilities import constants
-from utilities import demo
+import pandas as pd
+
+from utilities import constants as c
 
 # start of flow of execution, this is what's called from command line
 if __name__ == "__main__":
@@ -17,15 +18,13 @@ if __name__ == "__main__":
         # get input from command line and split for parsing
         command = input("> ").split()
 
-        # make sure the user typed something in
-        if len(command) > 0:
-            # if the command is inference (i.e., make predictions), use the model to make predictions
-            if command[0] == "inference":
-                # for this command, the user must provide paths to input and output files
-                try:
-                    model.make_inference(command[1], command[2])
-                except IndexError:
-                    print("error: inference command must include input file and output file.")
+        # if the command is inference (i.e., make predictions), use the model to make predictions
+        if command[0] == "inference":
+            # for this command, the user must provide paths to input and output files
+            try:
+                model.make_inference(pd.read_df(command[1]), command[2])
+            except IndexError:
+                print("error: inference command must include input file and output file.")
 
             # run the demonstration simulation
             elif command[0] == "demo":

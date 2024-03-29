@@ -5,35 +5,35 @@ import preprocess as pre
 
 from utilities import constants as c
 
+from sklearn.ensemble import RandomForestClassifier
+
 
 class Model:
-    def __init__(self, path):
-        self.model_path = path  # the path to the model file
-        self.model = self.load_model()  # the actual model
+
+    def __init__(self):
+        self.model = RandomForestClassifier()  # the actual model
         self.records = dictionary.Dictionary()  # dictionary that stores historic radar data
 
-    def load_model(self):
+    def save_model(self, filename):
+        #save the model
+        pickle.dump(self.model, open(filename, 'wb'))
+
+    def load_model(self, filename):
         # try to load the model from its file
         try:
-            model = pickle.load(open(self.model_path, 'rb'))
+            model = pickle.load(open(filename, 'rb'))
             return model
 
         # if the file can't be found, print a message and return
         # TODO: figure out a better way to handle this error
         except FileNotFoundError:
-            print(f"no model found at {self.model_path}")
+            print(f"no model found at {filename}")
             return None
+        
+    def train_model(self, data):
+        print("Not yet implemented")
 
-    def make_inference(self, input_path, output_path, demo=False):
-        # try to read the input csv into a dataframe
-        try:
-            input_df = pre.read_df(input_path)
-
-        # if the file can't be found, print the error and return
-        # TODO: figure out a better way to handle this error
-        except FileNotFoundError as error:
-            print(error)
-            return None
+    def make_inference(self, input_df, output_path):
 
         # "clean" the data by dropping unnecessary columns, etc...
         df = input_df.copy()
