@@ -40,4 +40,4 @@ USE_FEATURES = ['Average Speed', 'Stan. Dev. Speed', 'Average Heading',
                 'M1 Range', 'M1 AZ', 'M1 EL', 'M1 Speed', 'M1 Heading',
                 'M2 Range', 'M2 AZ', 'M2 EL', 'M2 Speed', 'M2 Heading']
 
-MODEL_PATH = '../models/mar14_SM.sav'
+MODEL_PATH = '../models/bird_drone_20_mar20.sav'
