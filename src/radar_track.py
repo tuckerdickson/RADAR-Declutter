@@ -221,7 +221,7 @@ class RADARTrack:
 
     def past_stale_time(self):
         dif = time.time() - self.last_update
-        return dif > 60
+        return dif > 90
 
 class SmoothnessVector:
     def __init__(self, init_val):

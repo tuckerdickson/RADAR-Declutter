@@ -1,3 +1,9 @@
 /notebooks/.ipynb_checkpoints/
 .DS_Store
 src/__pycache__/
+data/raw/demo/test01_complete.csv
+data/raw/crane/NO_INTERP_Hostile_Radar_Data.csv
+data/raw/crane/Marked_Radar_Data.csv
+data/raw/crane/Marked_Radar_Data_Bird.csv
+data/raw/crane/Hostile_Radar_Data.csv
+data/raw/crane/Contacts_20240313.csv
