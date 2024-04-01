@@ -2,54 +2,83 @@ import pickle
 
 import dictionary
 import preprocess as pre
+import output
+
+from utilities import constants as c
+
+from sklearn.ensemble import RandomForestClassifier
 
 
 class Model:
-    def __init__(self, path):
-        self.model_path = path
-        self.model = self.load_model()
+
+    def __init__(self, path=None):
+        self.model = RandomForestClassifier() if path is None else self.load_model(path)
         self.records = dictionary.Dictionary()
 
-    def load_model(self):
+    def save_model(self, filename):
+        #save the model
+        pickle.dump(self.model, open(filename, 'wb'))
+
+    def load_model(self, filename):
+        # try to load the model from its file
         try:
-            model = pickle.load(open(self.model_path, 'rb'))
+            model = pickle.load(open(filename, 'rb'))
+            return model
+
+        # if the file can't be found, print a message and return
+        # TODO: figure out a better way to handle this error
         except FileNotFoundError:
-            print(f"no model found at {self.model_path}")
+            print(f"no model found at {filename}")
             return None
+        
+    def train_model(self, data):
+        print("Not yet implemented")
 
-        return model
+    def make_inference(self, input_df, output_path, demo=False):
 
-    def make_inference(self, input_path, output_path):
-        # try to read the input csv into a dataframe
-        try:
-            input_df = pre.read_df(input_path)
-        except FileNotFoundError as error:
-            print(error)
-            return None
-
-        # drop appropriate columns (commented for now because the current model uses all fields in the combined data)
-        # df = input_df.drop(columns=c.DROP_COLUMNS)
+        # "clean" the data by dropping unnecessary columns, etc...
+        df = input_df.copy()
+        df = pre.clean_df(df)
 
         # add plots to dictionary
-        for idx, row in input_df.iterrows():
+        curr_uuids = []
+        for idx, row in df.iterrows():
             uuid = row["UUID"]
             self.records.add_plot(uuid, row)
+            curr_uuids.append(uuid)
 
-        # TODO: calculate feature vectors
-        feature_df = self.records.get_features()
-        print(feature_df)
+        # calculate feature vectors for the objects present
+        feature_df = self.records.get_features(curr_uuids)
 
-        # # TODO: classifier
-        # predictions = self.model.predict(input_df.drop(columns=['UUID']))
-        # conf_levels = self.model.predict_proba(input_df.drop(columns=['UUID']))
-        # max_conf_levels = conf_levels.max(axis=1)
-        #
-        # # TODO: add the prediction to input data
-        # input_df["Prediction"] = predictions
-        # input_df["Confidence"] = max_conf_levels
-        #
-        # print(input_df.head(5))
-        # print(input_df.tail(5))
+        # set the column names for the returned feature df
+        # feature_df.set_index(0, inplace=True)
+        feature_df.set_index('UUID', inplace=True)
+        feature_df.columns = c.RETURNED_FEATURES
 
-        # # output the augmented dataframe as a csv
-        # input_df.to_csv(output_path, index=False)
+
+        # rename the columns to match what the current classifier expects
+        feature_df.rename(columns=c.FEATURE_MAP, inplace=True)
+
+        # reorder the columns to match what the current classifier expects
+        feature_df = feature_df[c.USE_FEATURES]
+        feature_df.fillna(0, inplace=True)
+
+        # make predictions with classifier
+        predictions = self.model.predict(feature_df)
+        conf_levels = self.model.predict_proba(feature_df)
+        max_conf_levels = conf_levels.max(axis=1)
+
+        # add the prediction to input data
+        input_df["Prediction"] = predictions
+        input_df["Confidence"] = max_conf_levels
+
+        # if running demonstration, return the data so that results can be displayed
+        if demo:
+            return input_df
+
+        # otherwise, output the augmented dataframe as a csv
+        input_df.to_csv(output_path, index=False)
+
+        # otherwise, output the augmented dataframe as a protobuff file
+        # currently disabled to avoid errors in working branches
+        # output.dataframe_to_protomessage(input_df, output_path)
