@@ -23,7 +23,7 @@ if __name__ == "__main__":
         if command[0] == "inference":
             # for this command, the user must provide paths to input and output files
             try:
-                model.make_inference(pd.read_df(command[1]), command[2])
+                model.make_inference(pd.read_csv(command[1]), command[2])
             except IndexError:
                 print("error: inference command must include input file and output file.")
 

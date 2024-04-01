@@ -10,9 +10,9 @@ from sklearn.ensemble import RandomForestClassifier
 
 class Model:
 
-    def __init__(self):
-        self.model = RandomForestClassifier()  # the actual model
-        self.records = dictionary.Dictionary()  # dictionary that stores historic radar data
+    def __init__(self, path=None):
+        self.model = RandomForestClassifier() if path is None else self.load_model(path)
+        self.records = dictionary.Dictionary()
 
     def save_model(self, filename):
         #save the model
@@ -33,7 +33,7 @@ class Model:
     def train_model(self, data):
         print("Not yet implemented")
 
-    def make_inference(self, input_df, output_path):
+    def make_inference(self, input_df, output_path, demo=False):
 
         # "clean" the data by dropping unnecessary columns, etc...
         df = input_df.copy()
