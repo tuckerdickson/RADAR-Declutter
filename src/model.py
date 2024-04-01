@@ -74,7 +74,8 @@ class Model:
             return input_df
 
         # otherwise, output the augmented dataframe as a csv
-        # input_df.to_csv(output_path, index=False)
+        input_df.to_csv(output_path, index=False)
 
         # otherwise, output the augmented dataframe as a protobuff file
-        output.dataframe_to_protomessage(input_df, output_path)
+        # currently disabled to avoid errors in working branches
+        # output.dataframe_to_protomessage(input_df, output_path)
