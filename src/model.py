@@ -50,13 +50,14 @@ class Model:
         feature_df = self.records.get_features(curr_uuids)
 
         # set the column names appropriately for the classifier
-        feature_df.set_index(0, inplace=True)
+        # feature_df.set_index(0, inplace=True)
+        feature_df.set_index('UUID', inplace=True)
         feature_df.columns = c.FEATURE_NAMES
 
         # keep only the features that the classifier was trained on
         feature_df = feature_df[c.CLASSIFIER_FEATURES]
 
-        # print(feature_df)
+        print(feature_df)
         # return
 
         # make predictions with classifier

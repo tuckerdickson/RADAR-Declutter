@@ -15,7 +15,7 @@ DROP_COLUMNS = ['Name', 'Create Time', 'User Edit Time', 'Type', 'Associated UUI
                 'Deleted', 'Deleted Time', 'AIS MMSI', 'AIS IMO', 'AIS Call Sign', 'AIS Ship Type',
                 'AIS Destination', 'AIS ETA', 'Fused', 'Fused Tracks']
 
-FEATURE_NAMES = ['avg_speed', 'std_speed', 'avg_heading', 'std_heading', 'mav_factor', 'avg_curvature',
+FEATURE_NAMES = ['avg_speed', 'std_speed', 'std_heading', 'mav_factor', 'avg_curvature',
                  'm1_speed', 'm2_speed', 'm1_heading', 'm2_heading', 'm1_azimuth', 'm2_azimuth',
                  'm1_elevation', 'm2_elevation', 'm1_range', 'm2_range']
 

@@ -10,29 +10,30 @@ class Dictionary:
     def add_plot(self, uuid, plot):
         # if the uuid is already in the dictionary, add it to the collection
         vals = {
-            "speed": plot["Speed"],
-            "azimuth": plot["AZ"],
-            "elevation": plot["EL"],
-            "range": plot["Range"],
-            "lat": plot["Position (lat)"],
-            "lon": plot["Position (lon)"],
-            "msl_alt": plot["Position (alt MSL)"]
+            "Speed": [plot["Speed"]],
+            "AZ": [plot["AZ"]],
+            "EL": [plot["EL"]],
+            "Range": [plot["Range"]],
+            "Position (lat)": [plot["Position (lat)"]],
+            "Position (lon)": [plot["Position (lon)"]],
+            "Position (alt MSL)": [plot["Position (alt MSL)"]]
         }
         if uuid in self.dictionary:
             self.dictionary[uuid].calculate_new_values(vals)
 
         # if the uuid is not in the dictionary, create a new entry for it
         else:
-            new_track = RADARTrack(init_vals=vals)
+            new_track = RADARTrack(uuid=uuid, init_vals=vals)
             self.dictionary[uuid] = new_track
-            # TODO: if the maximum number of entries is exceeded, remove the oldest entry
 
     def get_features(self, curr_uuids):
         res_list = []
         for uuid in curr_uuids:
             res_list.append(self.get_feature_vector(uuid))
-
-        return pd.DataFrame(res_list)
+        df = pd.DataFrame(res_list)
+        df.fillna(0, inplace=True)
+        print(df)
+        return df
 
     def get_feature_vector(self, uuid):
         # raise an exception if the UUID isn't in the dictionary
@@ -40,9 +41,5 @@ class Dictionary:
             raise Exception(
                 f"The following UUID was not found in the dictionary: {uuid}"
             )
-
-        track_object = self.dictionary[uuid]
-        fv = [uuid]
-        fv.extend(track_object.get_feature_vector())
-
-        return fv
+            
+        return self.dictionary[uuid].get_feature_vector()
