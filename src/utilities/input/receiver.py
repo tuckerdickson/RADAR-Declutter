@@ -1,28 +1,44 @@
 import socket
 import struct
+
+import pandas as pd
+
 from CtcInMsg_Defs import *
 
 
 def receive_messages(host, port):
+    # create a socket
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        # bind the socket to the address and port
         s.bind((host, port))
 
+        # listen for incoming connections
         s.listen()
         print(f"Listening on {host}:{port}")
 
+        # keep the receiver listening indefinitely
         while True:
+            # accept an incoming connection
             conn, addr = s.accept()
-            print(f"Connected by: {addr}")
 
+            # the following context manager will the connection is closed properly
             with conn:
+                # read in the transmitted data
                 while True:
                     data = conn.recv(1024)
 
+                    # break if transmitter closed connection
                     if not data:
                         break
 
                     print(f"Received {len(data)} bytes from {addr}")
 
+                    # decode the message
+                    (header, body) = decode_message(data)
+
+                    if header.msgType == 1:
+                        data_pd = ctc_to_pd(header, body)
+                        print(f"{data_pd}\n")
 
 
 def decode_message(message):
@@ -39,6 +55,7 @@ def decode_message(message):
 
     # grab the body (rest of the message after the header)
     body_message = message[struct.calcsize(header_format):]
+    body = None
 
     # there were 3 types of message in the network capture
     # type 1 is CtcInCommonMeasurement_3DPositionStruct (28-byte body, 42 bytes total)
@@ -70,6 +87,8 @@ def decode_message(message):
 
     # type 3 is CtcInCommonSensorStatusStruct (30-byte body, 44 bytes total)
     elif header.msgType == 3:
+        pass
+
         # body length should be 30 bytes
         assert len(body_message) == 30
 
@@ -80,6 +99,25 @@ def decode_message(message):
         body_data = struct.unpack(body_format, body_message)
         body = CtcInCommonSensorStatusStruct(header, body_data[0], body_data[1], body_data[2], body_data[3],
                                              body_data[4], body_data[5], body_data[6], body_data[7], body_data[8])
+
+    return header, body
+
+
+def ctc_to_pd(header, body):
+    uuid = body.trackNumber
+    azimuth = (body.azimuth * 360) / (2**32)
+    elevation = (body.elevation * 180) / (2**16)
+    range_ = body.range / 16
+
+    data = {
+        'UUID': uuid,
+        'AZ': azimuth,
+        'EL': elevation,
+        'Range': range_
+    }
+
+    df = pd.Series(data, dtype=object)
+    return df
 
 
 if __name__ == "__main__":
