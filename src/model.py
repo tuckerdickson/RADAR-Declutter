@@ -6,35 +6,35 @@ import output
 
 from utilities import constants as c
 
+from sklearn.ensemble import RandomForestClassifier
+
 
 class Model:
-    def __init__(self, path):
-        self.model_path = path  # the path to the model file
-        self.model = self.load_model()  # the actual model
-        self.records = dictionary.Dictionary()  # dictionary that stores historic radar data
 
-    def load_model(self):
+    def __init__(self, path=None):
+        self.model = RandomForestClassifier() if path is None else self.load_model(path)
+        self.records = dictionary.Dictionary()
+
+    def save_model(self, filename):
+        #save the model
+        pickle.dump(self.model, open(filename, 'wb'))
+
+    def load_model(self, filename):
         # try to load the model from its file
         try:
-            model = pickle.load(open(self.model_path, 'rb'))
+            model = pickle.load(open(filename, 'rb'))
             return model
 
         # if the file can't be found, print a message and return
         # TODO: figure out a better way to handle this error
         except FileNotFoundError:
-            print(f"no model found at {self.model_path}")
+            print(f"no model found at {filename}")
             return None
+        
+    def train_model(self, data):
+        print("Not yet implemented")
 
-    def make_inference(self, input_path, output_path, demo=False):
-        # try to read the input csv into a dataframe
-        try:
-            input_df = pre.read_df(input_path)
-
-        # if the file can't be found, print the error and return
-        # TODO: figure out a better way to handle this error
-        except FileNotFoundError as error:
-            print(error)
-            return None
+    def make_inference(self, input_df, output_path, demo=False):
 
         # "clean" the data by dropping unnecessary columns, etc...
         df = input_df.copy()
@@ -50,15 +50,18 @@ class Model:
         # calculate feature vectors for the objects present
         feature_df = self.records.get_features(curr_uuids)
 
-        # set the column names appropriately for the classifier
-        feature_df.set_index(0, inplace=True)
-        feature_df.columns = c.FEATURE_NAMES
+        # set the column names for the returned feature df
+        # feature_df.set_index(0, inplace=True)
+        feature_df.set_index('UUID', inplace=True)
+        feature_df.columns = c.RETURNED_FEATURES
 
-        # keep only the features that the classifier was trained on
-        feature_df = feature_df[c.CLASSIFIER_FEATURES]
 
-        # print(feature_df)
-        # return
+        # rename the columns to match what the current classifier expects
+        feature_df.rename(columns=c.FEATURE_MAP, inplace=True)
+
+        # reorder the columns to match what the current classifier expects
+        feature_df = feature_df[c.USE_FEATURES]
+        feature_df.fillna(0, inplace=True)
 
         # make predictions with classifier
         predictions = self.model.predict(feature_df)

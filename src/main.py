@@ -1,19 +1,21 @@
 import readline
 
 import model
-from utilities import constants
+import pandas as pd
+
+from utilities import constants as c
 from utilities import demo
 
 # start of flow of execution, this is what's called from command line
 if __name__ == "__main__":
     # load the machine learning model (specified by constants.MODEL_PATH)
-    model = model.Model(path=constants.MODEL_PATH)
+    model = model.Model(path=c.MODEL_PATH)
 
     # used to store and parse command line commands
     command = [""]
 
     # keep the program going until the user requests to quit
-    while command[0] != "quit":
+    while len(command) == 0 or command[0] != "quit":
         # get input from command line and split for parsing
         command = input("> ").split()
 
@@ -21,7 +23,7 @@ if __name__ == "__main__":
         if command[0] == "inference":
             # for this command, the user must provide paths to input and output files
             try:
-                model.make_inference(command[1], command[2])
+                model.make_inference(pd.read_csv(command[1]), command[2])
             except IndexError:
                 print("error: inference command must include input file and output file.")
 
