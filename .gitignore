@@ -14,3 +14,5 @@ data/raw/crane/NO_INTERP_Hostile_Radar_Data.csv
 /data/raw/demo/output/*
 
 /notebooks/feature_vectors.ipynb
+data/raw/crane/Marked_Radar_Data_Bird.csv
+data/raw/demo/test01_complete.csv
