@@ -1,6 +1,28 @@
+import socket
 import struct
 from CtcInMsg_Defs import *
-from scapy.all import rdpcap
+
+
+def receive_messages(host, port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((host, port))
+
+        s.listen()
+        print(f"Listening on {host}:{port}")
+
+        while True:
+            conn, addr = s.accept()
+            print(f"Connected by: {addr}")
+
+            with conn:
+                while True:
+                    data = conn.recv(1024)
+
+                    if not data:
+                        break
+
+                    print(f"Received {len(data)} bytes from {addr}")
+
 
 
 def decode_message(message):
@@ -60,15 +82,7 @@ def decode_message(message):
                                              body_data[4], body_data[5], body_data[6], body_data[7], body_data[8])
 
 
-def extract_messages_from_pcap(file):
-    packets = rdpcap(file)
-
-    for packet in packets:
-        if packet.haslayer("Raw"):
-            message = packet.getlayer("Raw").load
-            decode_message(message)
-
-
 if __name__ == "__main__":
-    pcap_file = "Contact_Export_Network_Capture.pcap"
-    extract_messages_from_pcap(pcap_file)
+    HOST = "localhost"
+    PORT = 12345
+    receive_messages(HOST, PORT)
