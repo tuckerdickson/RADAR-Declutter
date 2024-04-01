@@ -8,8 +8,11 @@ data/processed/crane/bird_drone_20.csv
 
 /data/raw/crane/Contacts_20240313.csv
 /data/raw/crane/Marked_Radar_Data.csv
-
+/data/raw/crane/Hostile_Radar_Data.csv
+data/raw/crane/NO_INTERP_Hostile_Radar_Data.csv
 /data/raw/demo/other/*
 /data/raw/demo/output/*
 
-/notebooks/FeatureVectors.ipynb
+/notebooks/feature_vectors.ipynb
+data/raw/crane/Marked_Radar_Data_Bird.csv
+data/raw/demo/test01_complete.csv

@@ -50,8 +50,10 @@ class Model:
         feature_df = self.records.get_features(curr_uuids)
 
         # set the column names for the returned feature df
-        feature_df.set_index(0, inplace=True)
+        # feature_df.set_index(0, inplace=True)
+        feature_df.set_index('UUID', inplace=True)
         feature_df.columns = c.RETURNED_FEATURES
+
 
         # rename the columns to match what the current classifier expects
         feature_df.rename(columns=c.FEATURE_MAP, inplace=True)
