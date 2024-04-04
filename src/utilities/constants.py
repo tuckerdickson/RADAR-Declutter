@@ -33,11 +33,13 @@ FEATURE_MAP = {'avg_speed': 'Average Speed',
                'm2_azimuth': 'M2 AZ',
                'm2_elevation': 'M2 EL',
                'm2_speed': 'M2 Speed',
-               'm2_heading': 'M2 Heading'}
+               'm2_heading': 'M2 Heading',
+               }
 
 USE_FEATURES = ['Average Speed', 'Stan. Dev. Speed', 'Average Heading',
                 'Stan. Dev. Heading', 'Average Curvature', 'Maneuverability',
                 'M1 Range', 'M1 AZ', 'M1 EL', 'M1 Speed', 'M1 Heading',
-                'M2 Range', 'M2 AZ', 'M2 EL', 'M2 Speed', 'M2 Heading']
+                'M2 Range', 'M2 AZ', 'M2 EL', 'M2 Speed', 'M2 Heading',
+                ]
 
 MODEL_PATH = '../models/bird_drone_20_mar20.sav'

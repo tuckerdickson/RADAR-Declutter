@@ -6,6 +6,8 @@ import os
 import pandas as pd
 from model import Model
 
+from utilities import constants as c
+
 parser = argparse.ArgumentParser(
     prog='Test Model',
     description='Tests a model on the provided data')
@@ -21,7 +23,7 @@ args = parser.parse_args()
 files = set()
 
 for dir in args.testingDirectories:
-    files |= set(glob.glob(dir + '/*' + '.csv'))
+    files |= set(glob.glob(dir + '/*' + '.csv', recursive=True))
 
 for file in args.testingFiles:
     files.add(file)
@@ -36,6 +38,8 @@ for file in files:
 
 if(len(data) > 0):
     testing = pd.concat(data)
+
+testing = testing.rename(columns=c.INPUT_MAP, errors='raise')
 
 mod.load_model(args.modelFile)
 mod.make_inference(testing, args.resultsFile)

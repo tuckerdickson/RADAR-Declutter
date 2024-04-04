@@ -3,9 +3,13 @@ import pickle
 import dictionary
 import preprocess as pre
 
+import numpy as np
+
 from utilities import constants as c
 
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn import metrics, tree
 
 
 class Model:
@@ -30,14 +34,59 @@ class Model:
             print(f"no model found at {filename}")
             return None
         
+    def clear_model(self):
+        self.model = RandomForestClassifier()
+        
     def train_model(self, data):
-        print("Not yet implemented")
+        
+        y = data["Label"]
+
+        data = pre.clean_df(data)
+
+        print(data)
+        # add plots to dictionary
+        curr_uuids = []
+        for idx, row in data.iterrows():
+            uuid = row["UUID"]
+            self.records.add_plot(uuid, row)
+            curr_uuids.append(uuid)
+
+        print(curr_uuids)
+
+        X = self.records.get_features(curr_uuids)
+        X.drop(columns=X.columns[0], axis=1, inplace=True)
+
+        print(X)
+
+        # Perform 70-30 split test on given data
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+        rf = RandomForestClassifier()
+        rf.fit(X_train, y_train)
+
+        rf_pred = rf.predict(X_test)
+        rf_confidence_pair = rf.predict_proba(X_test)
+
+        accuracy = metrics.accuracy_score(y_test, rf_pred)
+        print(f'accuracy = {100 * accuracy}')
+
+        accuracy = metrics.f1_score(y_test, rf_pred)
+        print(f'f1 score = {100 * accuracy}')
+
+        rf_confidence = [max(pair) for pair in rf_confidence_pair]
+        avg_rf_confidence = np.mean(rf_confidence)
+        med_rf_confidence = np.median(rf_confidence)
+        print(f'\naverage confidence level: {avg_rf_confidence}')
+        print(f'median confidence level: {med_rf_confidence}')
+
+        # Train self with full dataset
+        self.model = rf.fit(X, y)
 
     def make_inference(self, input_df, output_path):
 
         # "clean" the data by dropping unnecessary columns, etc...
         df = input_df.copy()
-        df = pre.clean_df(df)
+        #df = pre.clean_df(df)
 
         # add plots to dictionary
         curr_uuids = []
