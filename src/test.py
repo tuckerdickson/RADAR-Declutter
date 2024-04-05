@@ -2,6 +2,7 @@ import argparse
 import glob
 import datetime;
 import os
+import uuid
 
 import pandas as pd
 from model import Model
