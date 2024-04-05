@@ -27,8 +27,6 @@ for dir in args.trainingDirectories:
 for file in args.trainingFiles:
     files.add(file)
 
-print("\n")
-
 print("Loading Files:")
 print("----------------------------------------")
 print(files)
@@ -53,6 +51,9 @@ for name, group in grouped:
 
 dataframes["HOSTILE"]["Label"] = 1
 dataframes["UNKNOWN_THREAT"]["Label"] = 0
+
+print("HOSTILE tracks: ", len(dataframes["HOSTILE"]))
+print("UNKNOWN_THREAT tracks: ", len(dataframes["UNKNOWN_THREAT"]))
 
 labeled_data = pd.concat([dataframes["HOSTILE"], dataframes["UNKNOWN_THREAT"]], ignore_index=True)
 

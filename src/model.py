@@ -15,7 +15,7 @@ from sklearn import metrics, tree
 class Model:
 
     def __init__(self):
-        self.model = RandomForestClassifier()  # the actual model
+        self.model = RandomForestClassifier(class_weight='balanced')  # the actual model
         self.records = dictionary.Dictionary()  # dictionary that stores historic radar data
 
     def save_model(self, filename):
@@ -35,8 +35,8 @@ class Model:
             return None
         
     def clear_model(self):
-        self.model = RandomForestClassifier()
-        
+        self.model = RandomForestClassifier(class_weight='balanced')
+
     def train_model(self, data):
         
         y = data["Label"]
@@ -44,19 +44,20 @@ class Model:
         data = pre.clean_df(data)
 
         print(data)
+
+        print("Generating feature vectors...")
         # add plots to dictionary
         curr_uuids = []
         for idx, row in data.iterrows():
             uuid = row["UUID"]
             self.records.add_plot(uuid, row)
             curr_uuids.append(uuid)
+            print("Progress: " + str(idx) + "/" + str(len(data)), end='\r')
 
-        print(curr_uuids)
+        print("\nTraining Model...")
 
         X = self.records.get_features(curr_uuids)
         X.drop(columns=X.columns[0], axis=1, inplace=True)
-
-        print(X)
 
         # Perform 70-30 split test on given data
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
