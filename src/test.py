@@ -16,6 +16,8 @@ parser.add_argument('-m', '--modelFile', type=str, default='../models/feb25_fv.s
 parser.add_argument('-s', '--resultsFile', type=str, default='test.csv', help="Results filename")
 parser.add_argument('-t', '--testingFiles', type=str, default=[], nargs='+', help="Tests on all files listed")
 parser.add_argument('-d', '--testingDirectories', type=str, default=['../data/test'], nargs='+', help="Tests on all files in these directories")
+parser.add_argument('-l', '--trackLength', type=int, default=20, help="Maximum length before track splitting")
+parser.add_argument('-n', '--numRows', type=int, default=None, help="Limits the number of rows taken from the input during the test")
 
 args = parser.parse_args()
 
@@ -28,7 +30,10 @@ for dir in args.testingDirectories:
 for file in args.testingFiles:
     files.add(file)
 
+print("Loading Files:")
+print("----------------------------------------")
 print(files)
+print("----------------------------------------\n")
 
 mod = Model()
 
@@ -39,9 +44,48 @@ for file in files:
 if(len(data) > 0):
     testing = pd.concat(data)
 
-testing = testing.rename(columns=c.INPUT_MAP, errors='raise')
+if(args.numRows):
+    testing = testing[:args.numRows]
 
-mod.load_model(args.modelFile)
-mod.make_inference(testing, args.resultsFile)
+num_unique_uuids = testing['UUID'].nunique()
+print("Number of unique UUIDs:", num_unique_uuids)
 
-print("Saved results to " + args.resultsFile)
+
+print("Splitting tracks into length " + str(args.trackLength))
+grouped = testing.groupby("UUID")
+
+dataframes = []
+for group_name, group_df in grouped:
+    if len(group_df) > args.trackLength:
+        count = 0
+        
+        for idx, row in group_df.iterrows():
+            if count % args.trackLength == 0:
+                new_id = str(uuid.uuid4())
+
+            group_df.at[idx, "UUID"] = new_id
+            count += 1
+    dataframes.append(group_df)
+
+testing = pd.concat(dataframes)
+
+grouped = testing.groupby("Combat ID")
+
+dataframes = {}
+for name, group in grouped:
+    dataframes[name] = group.reset_index(drop=True)
+
+labeled_data = pd.DataFrame()
+
+if("HOSTILE" in grouped.groups):
+    dataframes["HOSTILE"]["Label"] = 1
+    labeled_data = pd.concat([labeled_data, dataframes["HOSTILE"]], ignore_index=True)
+    print("HOSTILE updates: ", len(dataframes["HOSTILE"]))
+if("UNKNOWN_THREAT" in grouped.groups):
+    dataframes["UNKNOWN_THREAT"]["Label"] = 0
+    labeled_data = pd.concat([labeled_data, dataframes["UNKNOWN_THREAT"]], ignore_index=True)
+    print("UNKNOWN_THREAT updates: ", len(dataframes["UNKNOWN_THREAT"]))
+
+if(mod.load_model(args.modelFile)):
+    mod.test_model(labeled_data, args.resultsFile)
+    print("Saved results to " + args.resultsFile)
