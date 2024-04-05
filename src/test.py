@@ -87,6 +87,8 @@ if("UNKNOWN_THREAT" in grouped.groups):
     labeled_data = pd.concat([labeled_data, dataframes["UNKNOWN_THREAT"]], ignore_index=True)
     print("UNKNOWN_THREAT updates: ", len(dataframes["UNKNOWN_THREAT"]))
 
+print("")
+
 if(mod.load_model(args.modelFile)):
     mod.test_model(labeled_data, args.resultsFile)
-    print("Saved results to " + args.resultsFile)
+    print("\nSaved results to " + args.resultsFile)

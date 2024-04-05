@@ -32,7 +32,7 @@ class Dictionary:
             res_list.append(self.get_feature_vector(uuid))
         df = pd.DataFrame(res_list)
         df.fillna(0, inplace=True)
-        print(df)
+        #print(df)
         return df
 
     def get_feature_vector(self, uuid):

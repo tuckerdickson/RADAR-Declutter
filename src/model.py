@@ -43,7 +43,7 @@ class Model:
 
         data = pre.clean_df(data)
 
-        print(data)
+        #print(data)
 
         print("Generating feature vectors...")
         # add plots to dictionary
@@ -54,7 +54,7 @@ class Model:
             curr_uuids.append(uuid)
             print("Progress: " + str(idx) + "/" + str(len(data)), end='\r')
 
-        print("\nTraining Model...")
+        print("\n\nTraining Model...")
 
         X = self.records.get_features(curr_uuids)
         X.drop(columns=X.columns[0], axis=1, inplace=True)
@@ -77,7 +77,7 @@ class Model:
         rf_confidence = [max(pair) for pair in rf_confidence_pair]
         avg_rf_confidence = np.mean(rf_confidence)
         med_rf_confidence = np.median(rf_confidence)
-        print(f'\naverage confidence level: {avg_rf_confidence}')
+        print(f'average confidence level: {avg_rf_confidence}')
         print(f'median confidence level: {med_rf_confidence}')
 
         # Train self with full dataset
@@ -88,7 +88,7 @@ class Model:
 
         data = pre.clean_df(data)
 
-        print(data)
+        #print(data)
 
         print("Generating feature vectors...")
         # add plots to dictionary
