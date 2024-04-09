@@ -1,5 +1,3 @@
-import readline
-
 import model
 import pandas as pd
 
@@ -22,18 +20,15 @@ if __name__ == "__main__":
 
         # if the command is inference (i.e., make predictions), use the model to make predictions
         if command[0] == "inference":
-            ################################## CSV VERSION ##################################
-            # # for this command, the user must provide paths to input and output files
-            # try:
-            #     model.make_inference(pd.read_csv(command[1]), command[2])
-            # except IndexError:
-            #     print("error: inference command must include input file and output file.")
-            #################################################################################
+            # for this command, the user must provide paths to input and output files
+            try:
+                model.make_inference(pd.read_csv(command[1]), command[2])
+            except IndexError:
+                print("error: inference command must include input file and output file.")
 
-            ################################## NET VERSION ##################################
+        elif command[0] == "listen":
             receiver = receiver.Receiver(model, "localhost", 12345)
             receiver.begin_listening()
-            #################################################################################
 
         # run the demonstration simulation
         elif command[0] == "demo":

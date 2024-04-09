@@ -1,10 +1,7 @@
-import pickle
-
 import dictionary
-import preprocess as pre
 import output
-
-from utilities import constants as c
+import pickle
+import preprocess as pre
 
 from sklearn.ensemble import RandomForestClassifier
 
