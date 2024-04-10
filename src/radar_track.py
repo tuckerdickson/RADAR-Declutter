@@ -31,7 +31,7 @@ class RADARTrack:
 
     def add_update(self, value_updates):
         self.updates = pd.concat([self.updates, pd.DataFrame(value_updates)], ignore_index=True)
-        self.n += 1
+        self.n += len(value_updates)
 
     def get_feature_vector(self):
         return self.feature_vector

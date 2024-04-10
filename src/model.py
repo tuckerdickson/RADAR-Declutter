@@ -1,9 +1,11 @@
 import pickle
-
 import dictionary
 import preprocess as pre
+from radar_track import RADARTrack
 
 import numpy as np
+import pandas as pd
+from pandas import DataFrame
 
 from utilities import constants as c
 
@@ -19,14 +21,13 @@ class Model:
         self.records = dictionary.Dictionary()  # dictionary that stores historic radar data
 
     def save_model(self, filename):
-        #save the model
         pickle.dump(self.model, open(filename, 'wb'))
 
     def load_model(self, filename):
         # try to load the model from its file
         try:
-            model = pickle.load(open(filename, 'rb'))
-            return model
+            self.model = pickle.load(open(filename, 'rb'))
+            return self.model
 
         # if the file can't be found, print a message and return
         # TODO: figure out a better way to handle this error
@@ -38,26 +39,43 @@ class Model:
         self.model = RandomForestClassifier(class_weight='balanced')
 
     def train_model(self, data):
-        
-        y = data["Label"]
 
         data = pre.clean_df(data)
 
-        #print(data)
-
         print("Generating feature vectors...")
-        # add plots to dictionary
-        curr_uuids = []
-        for idx, row in data.iterrows():
-            uuid = row["UUID"]
-            self.records.add_plot(uuid, row)
-            curr_uuids.append(uuid)
-            print("Progress: " + str(idx) + "/" + str(len(data)), end='\r')
+        grouped = data.groupby("UUID")
+        dataframes = []
+        i = 0
+        for group_name, group_df in grouped:
+            vals = {
+                "Speed": [group_df.iloc[0]["Speed"]],
+                "AZ": [group_df.iloc[0]["AZ"]],
+                "EL": [group_df.iloc[0]["EL"]],
+                "Range": [group_df.iloc[0]["Range"]],
+                "Position (lat)": [group_df.iloc[0]["Position (lat)"]],
+                "Position (lon)": [group_df.iloc[0]["Position (lon)"]],
+                "Position (alt MSL)": [group_df.iloc[0]["Position (alt MSL)"]]
+            }
+            l = len(group_df)
+
+            track = RADARTrack(uuid=group_name, init_vals=vals)
+            track.calculate_new_values(group_df.iloc[1:l])
+
+            features = track.get_feature_vector()
+            features["Label"] = group_df.iloc[0]["Label"]
+            features = {k:[v] for k,v in features.items()} # pandas needs everything to have an index
+            dataframes.append(DataFrame.from_dict(features, orient='columns'))
+
+            i+=l
+            print("Progress: " + str(i) + "/" + str(len(data)), end='\r')
+
+        data = pd.concat(dataframes)
+        data.dropna(how='any', inplace=True)
 
         print("\n\nTraining Model...")
-
-        X = self.records.get_features(curr_uuids)
-        X.drop(columns=X.columns[0], axis=1, inplace=True)
+        X = data.drop("Label", axis=1)
+        y = data["Label"]
+        X.drop("UUID", axis=1, inplace=True)
 
         # Perform 70-30 split test on given data
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
@@ -87,8 +105,6 @@ class Model:
         y = data["Label"]
 
         data = pre.clean_df(data)
-
-        #print(data)
 
         print("Generating feature vectors...")
         # add plots to dictionary
