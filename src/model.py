@@ -13,11 +13,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn import metrics, tree
 from sklearn.base import clone
+from sklearn.metrics import classification_report
 
 class Model:
 
     def __init__(self, path=None):
-        self.model = RandomForestClassifier(class_weight='balanced') if path is None else self.load_model(path) # the actual model
+        self.model = RandomForestClassifier() if path is None else self.load_model(path) # the actual model
         self.records = dictionary.Dictionary()  # dictionary that stores historic radar data
 
     def save_model(self, filename):
@@ -97,6 +98,9 @@ class Model:
         med_rf_confidence = np.median(rf_confidence)
         print(f'average confidence level: {avg_rf_confidence}')
         print(f'median confidence level: {med_rf_confidence}')
+
+        print("\nClassification Report")
+        print(classification_report(y_test, rf_pred, target_names=["Bird", "Drone"], digits=4))
 
         # Train self with full dataset
         self.model.fit(X, y)

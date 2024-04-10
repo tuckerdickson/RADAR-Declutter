@@ -193,6 +193,7 @@ for rep in range(generativeCycles):
     gpsTracks = []
 
 df_gps = pd.concat(finalTracks, ignore_index=True)
+df_gps["Combat ID"] = "HOSTILE"
 df_gps = df_gps.sort_values(by='time(millisecond)', ascending=True)
 df_gps.name = 'gpsData.csv'
 
