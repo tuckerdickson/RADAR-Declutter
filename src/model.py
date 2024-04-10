@@ -13,7 +13,6 @@ class Model:
         self.records = dictionary.Dictionary()
 
     def save_model(self, filename):
-        #save the model
         pickle.dump(self.model, open(filename, 'wb'))
 
     def load_model(self, filename):
@@ -27,7 +26,7 @@ class Model:
         except FileNotFoundError:
             print(f"no model found at {filename}")
             return None
-        
+
     def train_model(self, data):
         print("Not yet implemented")
 

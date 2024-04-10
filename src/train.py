@@ -1,6 +1,6 @@
 import argparse
 import glob
-import datetime;
+import datetime
 import os
 
 import pandas as pd

@@ -1,12 +1,10 @@
-import os
-import time
-
 import matplotlib.pyplot as plt
-import numpy as np
+import os
+import pandas as pd
+import time
 
 from matplotlib.animation import FuncAnimation
 from sklearn import metrics
-
 from . import constants
 
 
@@ -21,14 +19,6 @@ class Demo:
         self.table_cols = ["UUID", "Update #", "Ground Truth", "Prediction", "Confidence"]
 
     def run_tests(self):
-        if not os.path.isdir(self.input_path):
-            print(f"Error: {self.input_path} is not a valid directory path.")
-            return
-
-        if not os.path.isdir(self.output_path):
-            print(f"Error: {self.output_path} is not a valid directory path.")
-            return
-
         fig, axes = plt.subplots(nrows=1,
                                  ncols=2,
                                  figsize=(14, 8),
@@ -49,7 +39,7 @@ class Demo:
             out_file = os.path.join(self.output_path, self.input_files[frame])
 
             start = time.time()
-            df = self.model.make_inference(in_file, out_file, demo=True)
+            df = self.model.make_inference(pd.read_csv(in_file), out_file, demo=True)
             end = time.time()
 
             elapsed = end - start
