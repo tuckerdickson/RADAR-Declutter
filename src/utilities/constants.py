@@ -13,10 +13,6 @@ DROP_COLUMNS = ['Name', 'Create Time', 'User Edit Time', 'Type', 'Associated UUI
                 'Deleted', 'Deleted Time', 'AIS MMSI', 'AIS IMO', 'AIS Call Sign', 'AIS Ship Type',
                 'AIS Destination', 'AIS ETA', 'Fused', 'Fused Tracks']
 
-RETURNED_FEATURES = ['avg_speed', 'std_speed', 'std_heading', 'mav_factor', 'avg_curvature',
-                 'm1_speed', 'm2_speed', 'm1_heading', 'm2_heading', 'm1_azimuth', 'm2_azimuth',
-                 'm1_elevation', 'm2_elevation', 'm1_range', 'm2_range']
-
 # mar14_SM.sav
 FEATURE_MAP = {'avg_speed': 'Average Speed',
                'std_speed': 'Stan. Dev. Speed',
@@ -35,9 +31,9 @@ FEATURE_MAP = {'avg_speed': 'Average Speed',
                'm2_speed': 'M2 Speed',
                'm2_heading': 'M2 Heading'}
 
-USE_FEATURES = ['Average Speed', 'Stan. Dev. Speed', 'Average Heading',
+USE_FEATURES = ['Average Speed', 'Stan. Dev. Speed',
                 'Stan. Dev. Heading', 'Average Curvature', 'Maneuverability',
                 'M1 Range', 'M1 AZ', 'M1 EL', 'M1 Speed', 'M1 Heading',
                 'M2 Range', 'M2 AZ', 'M2 EL', 'M2 Speed', 'M2 Heading']
 
-MODEL_PATH = '../models/bird_drone_20_mar20.sav'
+MODEL_PATH = '../models/bird_drone_20.sav'

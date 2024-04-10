@@ -1,7 +1,7 @@
 import time
+import socket
 
 from scapy.all import rdpcap
-from receiver import *
 
 
 def send_message(host, port, message):

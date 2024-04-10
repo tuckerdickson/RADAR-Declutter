@@ -1,22 +1,17 @@
-import pickle
-
 import dictionary
-import preprocess as pre
 import output
-
-from utilities import constants as c
+import pickle
+import preprocess as pre
 
 from sklearn.ensemble import RandomForestClassifier
 
 
 class Model:
-
     def __init__(self, path=None):
         self.model = RandomForestClassifier() if path is None else self.load_model(path)
         self.records = dictionary.Dictionary()
 
     def save_model(self, filename):
-        #save the model
         pickle.dump(self.model, open(filename, 'wb'))
 
     def load_model(self, filename):
@@ -30,11 +25,11 @@ class Model:
         except FileNotFoundError:
             print(f"no model found at {filename}")
             return None
-        
+
     def train_model(self, data):
         print("Not yet implemented")
 
-    def make_inference(self, input_df, output_path, demo=False):
+    def make_inference(self, input_df, output_path=None, demo=False):
 
         # "clean" the data by dropping unnecessary columns, etc...
         df = input_df.copy()
@@ -51,17 +46,7 @@ class Model:
         feature_df = self.records.get_features(curr_uuids)
 
         # set the column names for the returned feature df
-        # feature_df.set_index(0, inplace=True)
         feature_df.set_index('UUID', inplace=True)
-        feature_df.columns = c.RETURNED_FEATURES
-
-
-        # rename the columns to match what the current classifier expects
-        feature_df.rename(columns=c.FEATURE_MAP, inplace=True)
-
-        # reorder the columns to match what the current classifier expects
-        feature_df = feature_df[c.USE_FEATURES]
-        feature_df.fillna(0, inplace=True)
 
         # make predictions with classifier
         predictions = self.model.predict(feature_df)
@@ -77,7 +62,8 @@ class Model:
             return input_df
 
         # otherwise, output the augmented dataframe as a csv
-        input_df.to_csv(output_path, index=False)
+        print(input_df)
+        # input_df.to_csv(output_path, index=False)
 
         # otherwise, output the augmented dataframe as a protobuff file
         # currently disabled to avoid errors in working branches
