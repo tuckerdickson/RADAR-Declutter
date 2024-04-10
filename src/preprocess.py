@@ -14,4 +14,4 @@ def read_df(file_path):
 
 
 def clean_df(df):
-    return df.drop(columns=c.DROP_COLUMNS)
+    return df.drop(columns=c.DROP_COLUMNS, errors='ignore')

@@ -1,10 +1,12 @@
 import numpy as np
+import time
 import pandas as pd
 
 
 class RADARTrack:
     def __init__(self, uuid, init_vals):
         self.n = 1
+        self.last_update = time.time()
         self.updates = pd.DataFrame(init_vals)
         self.uuid = uuid
         self.feature_vector = {
@@ -32,6 +34,11 @@ class RADARTrack:
     def add_update(self, value_updates):
         self.updates = pd.concat([self.updates, pd.DataFrame(value_updates)], ignore_index=True)
         self.n += len(value_updates)
+        self.last_update = time.time()
+        
+    def past_stale_time(self):
+        dif = time.time() - self.last_update
+        return dif > 90
 
     def get_feature_vector(self):
         return self.feature_vector

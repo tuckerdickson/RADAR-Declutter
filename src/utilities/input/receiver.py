@@ -1,44 +1,29 @@
 import socket
 import struct
-
 import pandas as pd
 
-from CtcInMsg_Defs import *
+from . import CtcInMsg_Defs
 
 
-def receive_messages(host, port):
-    # create a socket
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        # bind the socket to the address and port
-        s.bind((host, port))
+def ctc_to_pd(header, body):
+    uuid = body.trackNumber
+    azimuth = (body.azimuth * 360) / (2 ** 32)
+    elevation = (body.elevation * 180) / (2 ** 16)
+    range_ = body.range / 16
 
-        # listen for incoming connections
-        s.listen()
-        print(f"Listening on {host}:{port}")
+    data = {
+        'UUID': [uuid],
+        'Speed': [0],
+        'AZ': [azimuth],
+        'EL': [elevation],
+        'Range': [range_],
+        'Position (lat)': [0],
+        'Position (lon)': [0],
+        'Position (alt MSL)': [0]
+    }
 
-        # keep the receiver listening indefinitely
-        while True:
-            # accept an incoming connection
-            conn, addr = s.accept()
-
-            # the following context manager will the connection is closed properly
-            with conn:
-                # read in the transmitted data
-                while True:
-                    data = conn.recv(1024)
-
-                    # break if transmitter closed connection
-                    if not data:
-                        break
-
-                    print(f"Received {len(data)} bytes from {addr}")
-
-                    # decode the message
-                    (header, body) = decode_message(data)
-
-                    if header.msgType == 1:
-                        data_pd = ctc_to_pd(header, body)
-                        print(f"{data_pd}\n")
+    df = pd.DataFrame(data)
+    return df
 
 
 def decode_message(message):
@@ -50,8 +35,8 @@ def decode_message(message):
 
     # unpack the raw header according to the format above, store in Python structure
     header_data = struct.unpack(header_format, header_message)
-    header = CtcInDataHeader(header_data[0], header_data[1], header_data[2], header_data[3],
-                             header_data[4], header_data[5], header_data[6], header_data[7])
+    header = CtcInMsg_Defs.CtcInDataHeader(header_data[0], header_data[1], header_data[2], header_data[3],
+                                           header_data[4], header_data[5], header_data[6], header_data[7])
 
     # grab the body (rest of the message after the header)
     body_message = message[struct.calcsize(header_format):]
@@ -69,9 +54,10 @@ def decode_message(message):
 
         # unpack the raw body according to the format above, store in Python structure
         body_data = struct.unpack(body_format, body_message)
-        body = CtcInCommonMeasurement_3DPositionStruct(header, body_data[0], body_data[1], body_data[2],
-                                                       body_data[3], body_data[4], body_data[5], body_data[6],
-                                                       body_data[7], body_data[8], body_data[9], body_data[10])
+        body = CtcInMsg_Defs.CtcInCommonMeasurement_3DPositionStruct(header, body_data[0], body_data[1],
+                                                                     body_data[2], body_data[3], body_data[4],
+                                                                     body_data[5], body_data[6], body_data[7],
+                                                                     body_data[8], body_data[9], body_data[10])
 
     # type 2 is CtcInCommonTrackDropStruct (4-byte body, 18 bytes total)
     elif header.msgType == 2:
@@ -83,7 +69,7 @@ def decode_message(message):
 
         # unpack the raw body according to the format above, store in Python structure
         body_data = struct.unpack(body_format, body_message)
-        body = CtcInCommonTrackDropStruct(header, body_data[0])
+        body = CtcInMsg_Defs.CtcInCommonTrackDropStruct(header, body_data[0])
 
     # type 3 is CtcInCommonSensorStatusStruct (30-byte body, 44 bytes total)
     elif header.msgType == 3:
@@ -97,30 +83,52 @@ def decode_message(message):
 
         # unpack the raw body according to the format above, store in Python structure
         body_data = struct.unpack(body_format, body_message)
-        body = CtcInCommonSensorStatusStruct(header, body_data[0], body_data[1], body_data[2], body_data[3],
-                                             body_data[4], body_data[5], body_data[6], body_data[7], body_data[8])
+        body = CtcInMsg_Defs.CtcInCommonSensorStatusStruct(header, body_data[0], body_data[1], body_data[2],
+                                                           body_data[3], body_data[4], body_data[5],
+                                                           body_data[6], body_data[7], body_data[8])
 
     return header, body
 
 
-def ctc_to_pd(header, body):
-    uuid = body.trackNumber
-    azimuth = (body.azimuth * 360) / (2**32)
-    elevation = (body.elevation * 180) / (2**16)
-    range_ = body.range / 16
+class Receiver:
+    def __init__(self, model, host, port):
+        self.model = model
+        self.host = host
+        self.port = port
 
-    data = {
-        'UUID': uuid,
-        'AZ': azimuth,
-        'EL': elevation,
-        'Range': range_
-    }
+    def receive_messages(self):
+        # create a socket
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            # bind the socket to the address and port
+            s.bind((self.host, self.port))
 
-    df = pd.Series(data, dtype=object)
-    return df
+            # listen for incoming connections
+            s.listen()
+            print(f"Listening on {self.host}:{self.port}")
 
+            # keep the receiver listening indefinitely
+            while True:
+                # accept an incoming connection
+                conn, addr = s.accept()
 
-if __name__ == "__main__":
-    HOST = "localhost"
-    PORT = 12345
-    receive_messages(HOST, PORT)
+                # the following context manager will the connection is closed properly
+                with conn:
+                    # read in the transmitted data
+                    while True:
+                        data = conn.recv(1024)
+
+                        # break if transmitter closed connection
+                        if not data:
+                            break
+
+                        print(f"Received {len(data)} bytes from {addr}")
+
+                        # decode the message
+                        (header, body) = decode_message(data)
+
+                        if header.msgType == 1:
+                            data_pd = ctc_to_pd(header, body)
+                            self.model.make_inference(data_pd)
+
+    def begin_listening(self):
+        self.receive_messages()
