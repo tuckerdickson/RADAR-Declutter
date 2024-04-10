@@ -7,7 +7,6 @@ from sklearn.ensemble import RandomForestClassifier
 
 
 class Model:
-
     def __init__(self, path=None):
         self.model = RandomForestClassifier() if path is None else self.load_model(path)
         self.records = dictionary.Dictionary()
@@ -49,7 +48,6 @@ class Model:
         # set the column names for the returned feature df
         feature_df.set_index('UUID', inplace=True)
 
-        print(feature_df.columns)
         # make predictions with classifier
         predictions = self.model.predict(feature_df)
         conf_levels = self.model.predict_proba(feature_df)
