@@ -1,3 +1,4 @@
+import math
 import socket
 import struct
 import pandas as pd
@@ -10,6 +11,7 @@ def ctc_to_pd(header, body):
     azimuth = (body.azimuth * 360) / (2 ** 32)
     elevation = (body.elevation * 180) / (2 ** 16)
     range_ = body.range / 16
+    lat, lon, alt = calculate_position(range_, azimuth, elevation, 39.0, -87.0, 261.0)
 
     data = {
         'UUID': [uuid],
@@ -17,9 +19,9 @@ def ctc_to_pd(header, body):
         'AZ': [azimuth],
         'EL': [elevation],
         'Range': [range_],
-        'Position (lat)': [0],
-        'Position (lon)': [0],
-        'Position (alt MSL)': [0]
+        'Position (lat)': [lat],
+        'Position (lon)': [lon],
+        'Position (alt MSL)': [alt]
     }
 
     df = pd.DataFrame(data)
@@ -88,6 +90,30 @@ def decode_message(message):
                                                            body_data[6], body_data[7], body_data[8])
 
     return header, body
+
+
+def calculate_position(range_dist, azimuth, elevation, sensor_lat=0.0, sensor_lon=0.0, sensor_alt=0.0):
+    # convert az and el from degrees to radians
+    azimuth_radians = math.radians(azimuth)
+    elevation_radians = math.radians(elevation)
+
+    # calculate the horizontal range from sensor to target
+    horizontal_distance = range_dist * math.cos(elevation_radians)
+
+    # use the horizontal range to calculate the change in latitude and longitude
+    lat_change = horizontal_distance * math.cos(azimuth_radians)
+    lon_change = horizontal_distance * math.sin(azimuth_radians)
+
+    # calculate the vertical range from sensor to target (i.e., the change in altitude)
+    alt_change = range_dist * math.sin(elevation_radians)
+
+    # calculate the lat, lon, and alt of the object, assuming 111.32 km per 1 degree of latitude/longitude
+    # https://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters
+    object_lat = sensor_lat + (lat_change / 111320.0)
+    object_lon = sensor_lon + (lon_change / 111320.0)
+    object_alt = sensor_alt + alt_change
+
+    return object_lat, object_lon, object_alt
 
 
 class Receiver:
