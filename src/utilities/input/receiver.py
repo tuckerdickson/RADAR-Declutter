@@ -12,10 +12,11 @@ def ctc_to_pd(header, body):
     elevation = (body.elevation * 180) / (2 ** 16)
     range_ = body.range / 16
     lat, lon, alt = calculate_position(range_, azimuth, elevation, 39.0, -87.0, 261.0)
+    speed = calculate_speed(body.velocityNorth, body.velocityEast, body.velocityUp)
 
     data = {
         'UUID': [uuid],
-        'Speed': [0],
+        'Speed': [speed],
         'AZ': [azimuth],
         'EL': [elevation],
         'Range': [range_],
@@ -114,6 +115,10 @@ def calculate_position(range_dist, azimuth, elevation, sensor_lat=0.0, sensor_lo
     object_alt = sensor_alt + alt_change
 
     return object_lat, object_lon, object_alt
+
+
+def calculate_speed(north, east, up):
+    return math.sqrt((north * north) + (east * east) + (up * up))
 
 
 class Receiver:
