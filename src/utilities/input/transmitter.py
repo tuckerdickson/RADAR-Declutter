@@ -255,12 +255,9 @@ def main(argv=None, demonstration=True):
             # get the rows for this time point from the grouped DataFrame
             rows, grouped_df = get_rows(t, grouped_df)
 
-            print(f"* ====================== {t} ====================== *")
             # iterate over the rows for the time point, encode each row as a byte array and send to the receiver
             for row in rows:
-                print(row["Speed"], row["AZ"], row["EL"], row["Range"],
-                      row["Position (lat)"], row["Position (lon)"], row["Position (alt MSL)"])
-
+                print(f"Sending message with UUID: {row["UUID"]}")
                 encoded_message = encode_message(header, row)
                 send_message(args.host, args.port, encoded_message)
 

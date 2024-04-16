@@ -8,7 +8,7 @@ from sklearn import metrics
 from . import constants
 
 
-class Demo:
+class CsvDemo:
     def __init__(self, input_path, output_path, model):
         self.input_path = input_path
         self.output_path = output_path
@@ -101,3 +101,78 @@ class Demo:
             plt.ticklabel_format(style='plain')
 
             return
+
+
+class NetworkDemo:
+    def __init__(self, model):
+        self.time = 0
+        self.model = model
+        self.tracks = {}
+        self.table_cols = ["UUID", "Update #", "Ground Truth", "Prediction", "Confidence"]
+        self.fig, self.axes = plt.subplots(nrows=1,
+                                           ncols=2,
+                                           figsize=(14, 8),
+                                           gridspec_kw={'width_ratios': [1.5, 1]})
+
+    def run_test(self, input_df):
+        start = time.time()
+        df = self.model.make_inference(input_df, demo=True)
+        end = time.time()
+
+        elapsed = end - start
+
+        self.axes[0].cla()
+        self.axes[0].set_xlim(constants.DEMO_PLOT_X_LOWER, constants.DEMO_PLOT_X_UPPER)
+        self.axes[0].set_ylim(constants.DEMO_PLOT_Y_LOWER, constants.DEMO_PLOT_Y_UPPER)
+
+        self.axes[0].set_title("Object Trajectories")
+        self.axes[0].ticklabel_format(useOffset=False)
+
+        table_data = []
+        uuid = df.iloc[0]["UUID"]
+
+        x = df.iloc[0]["Position (lat)"]
+        y = df.iloc[0]["Position (lon)"]
+
+        gt = "Bird" if df.iloc[0]["Class"] == 0 else "Drone"
+        pred = "Bird" if df.iloc[0]["Prediction"] == 0 else "Drone"
+        conf = df.iloc[0]["Confidence"]
+
+        if uuid in self.tracks:
+            self.tracks[uuid]["xs"].append(x)
+            self.tracks[uuid]["ys"].append(y)
+            self.tracks[uuid]["count"] += 1
+        else:
+            self.tracks[uuid] = {"xs": [x],
+                                 "ys": [y],
+                                 "count": 1}
+
+        marker = 'b-' if df.iloc[0]["Class"] == 0 else 'r-'
+        self.axes[0].plot(self.tracks[uuid]["xs"], self.tracks[uuid]["ys"], marker, markersize=20)
+        table_data.append([uuid, self.tracks[uuid]["count"], gt, pred, f"{conf:.2f}"])
+
+        self.axes[1].cla()
+        self.axes[1].axis('off')
+
+        bbox = [0, 0, 1.2, 0.05*(1+len(df))]
+        table = self.axes[1].table(cellText=table_data,
+                                   colLabels=self.table_cols,
+                                   bbox=bbox,
+                                   loc='center')
+        table.set_fontsize(10)
+        table.scale(1.5, 1.5)
+
+        accuracy = metrics.accuracy_score(df["Class"], df["Prediction"])
+
+        txt = f"""Time = {self.time}\n
+        \n
+        Objects present: {len(df)}\n
+        Process Time: {elapsed:.4f} seconds\n
+        \n
+        Accuracy: {accuracy:.2f}
+        Average confidence: {df["Confidence"].mean():.2f}"""
+
+        self.axes[1].text(0, 0.68, txt, bbox={'facecolor': 'red', 'alpha': 0.5, 'pad': 10})
+
+        plt.ticklabel_format(style='plain')
+        return

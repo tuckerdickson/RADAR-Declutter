@@ -6,13 +6,17 @@ import pandas as pd
 from . import CtcInMsg_Defs
 
 
-def ctc_to_pd(header, body):
+def ctc_to_pd(body):
     uuid = body.trackNumber
     azimuth = (body.azimuth * 360) / (2 ** 32)
     elevation = (body.elevation * 180) / (2 ** 16)
     range_ = body.range / 16
-    lat, lon, alt = calculate_position(range_, azimuth, elevation, 39.0, -87.0, 261.0)
-    speed = calculate_speed(body.velocityNorth, body.velocityEast, body.velocityUp)
+    lat, lon, alt = calculate_position(range_, azimuth, elevation, 39.0, -87.0, 260.0)
+
+    velocityNorth = body.velocityNorth / 16
+    velocityEast = (body.velocityEast * 22.5) / (2 ** 16)
+    velocityUp = (body.velocityUp * 22.5) / (2 ** 16)
+    speed = calculate_speed(velocityNorth, velocityEast, velocityUp)
 
     data = {
         'UUID': [uuid],
@@ -122,10 +126,11 @@ def calculate_speed(north, east, up):
 
 
 class Receiver:
-    def __init__(self, model, host, port):
+    def __init__(self, model, host, port, demo=None):
         self.model = model
         self.host = host
         self.port = port
+        self.demo = demo
 
     def receive_messages(self):
         # create a socket
@@ -158,10 +163,12 @@ class Receiver:
                         (header, body) = decode_message(data)
 
                         if header.msgType == 1:
-                            data_pd = ctc_to_pd(header, body)
-                            print(data_pd)
+                            data_pd = ctc_to_pd(body)
 
-                            # self.model.make_inference(data_pd)
+                            # if self.demo is not None:
+                            #     self.demo.run_test(data_pd)
+                            # else:
+                            self.model.make_inference(data_pd)
 
     def begin_listening(self):
         self.receive_messages()
