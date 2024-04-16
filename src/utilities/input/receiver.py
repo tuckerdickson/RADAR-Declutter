@@ -152,14 +152,16 @@ class Receiver:
                         if not data:
                             break
 
-                        print(f"Received {len(data)} bytes from {addr}")
+                        # print(f"Received {len(data)} bytes from {addr}")
 
                         # decode the message
                         (header, body) = decode_message(data)
 
                         if header.msgType == 1:
                             data_pd = ctc_to_pd(header, body)
-                            self.model.make_inference(data_pd)
+                            print(data_pd)
+
+                            # self.model.make_inference(data_pd)
 
     def begin_listening(self):
         self.receive_messages()
