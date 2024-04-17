@@ -18,7 +18,7 @@ from sklearn.metrics import classification_report
 class Model:
 
     def __init__(self, path=None):
-        self.model = RandomForestClassifier() if path is None else self.load_model(path) # the actual model
+        self.model = RandomForestClassifier(class_weight='balanced') if path is None else self.load_model(path) # the actual model
         self.records = dictionary.Dictionary()  # dictionary that stores historic radar data
 
     def save_model(self, filename):
@@ -106,23 +106,44 @@ class Model:
         self.model.fit(X, y)
 
     def test_model(self, data, output_path):
-        y = data["Label"]
 
         data = pre.clean_df(data)
 
         print("Generating feature vectors...")
-        # add plots to dictionary
-        curr_uuids = []
-        for idx, row in data.iterrows():
-            uuid = row["UUID"]
-            self.records.add_plot(uuid, row)
-            curr_uuids.append(uuid)
-            print("Progress: " + str(idx) + "/" + str(len(data)), end='\r')
+        grouped = data.groupby("UUID")
+        dataframes = []
+        i = 0
+        for group_name, group_df in grouped:
+            vals = {
+                "Speed": [group_df.iloc[0]["Speed"]],
+                "AZ": [group_df.iloc[0]["AZ"]],
+                "EL": [group_df.iloc[0]["EL"]],
+                "Range": [group_df.iloc[0]["Range"]],
+                "Position (lat)": [group_df.iloc[0]["Position (lat)"]],
+                "Position (lon)": [group_df.iloc[0]["Position (lon)"]],
+                "Position (alt MSL)": [group_df.iloc[0]["Position (alt MSL)"]]
+            }
+            l = len(group_df)
+
+            track = RADARTrack(uuid=group_name, init_vals=vals)
+            track.calculate_new_values(group_df.iloc[1:l])
+
+            features = track.get_feature_vector()
+            features["Label"] = group_df.iloc[0]["Label"]
+            features = {k:[v] for k,v in features.items()} # pandas needs everything to have an index
+            dataframes.append(DataFrame.from_dict(features, orient='columns'))
+
+            i+=l
+            print("Progress: " + str(i) + "/" + str(len(data)), end='\r')
+
+        data = pd.concat(dataframes)
+        data.dropna(how='any', inplace=True)
 
         print("\nTesting Model...")
 
-        X = self.records.get_features(curr_uuids)
-        X.drop(columns=X.columns[0], axis=1, inplace=True)
+        X = data.drop("Label", axis=1)
+        y = data["Label"]
+        X.drop("UUID", axis=1, inplace=True)
 
         rf_pred = self.model.predict(X)
         rf_confidence_pair = self.model.predict_proba(X)
