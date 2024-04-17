@@ -160,6 +160,9 @@ class Model:
         print(f'\naverage confidence level: {avg_rf_confidence}')
         print(f'median confidence level: {med_rf_confidence}')
 
+        print("\nClassification Report")
+        print(classification_report(y, rf_pred, target_names=["Bird", "Drone"], digits=4))
+
         X["Label"] = rf_pred
         X.to_csv(output_path, index=False)
 
