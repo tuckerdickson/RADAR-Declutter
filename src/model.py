@@ -15,6 +15,32 @@ from sklearn import metrics, tree
 from sklearn.base import clone
 from sklearn.metrics import classification_report
 
+import multiprocessing as mp
+import tqdm
+
+def calculate_feature(group):
+    name, group = group
+    vals = {
+        "Speed": [group.iloc[0]["Speed"]],
+        "AZ": [group.iloc[0]["AZ"]],
+        "EL": [group.iloc[0]["EL"]],
+        "Range": [group.iloc[0]["Range"]],
+        "Position (lat)": [group.iloc[0]["Position (lat)"]],
+        "Position (lon)": [group.iloc[0]["Position (lon)"]],
+        "Position (alt MSL)": [group.iloc[0]["Position (alt MSL)"]]
+    }
+    l = len(group)
+
+    track = RADARTrack(uuid=name, init_vals=vals)
+    track.calculate_new_values(group.iloc[1:l])
+
+    features = track.get_feature_vector()
+    features["Label"] = group.iloc[0]["Label"]
+    features = {k:[v] for k,v in features.items()} # pandas needs everything to have an index
+    features = DataFrame.from_dict(features, orient='columns')
+
+    return features
+
 class Model:
 
     def __init__(self, path=None):
@@ -40,37 +66,22 @@ class Model:
         self.model = RandomForestClassifier(class_weight='balanced')
 
     def train_model(self, data):
-
+        
         data = pre.clean_df(data)
 
         print("Generating feature vectors...")
         grouped = data.groupby("UUID")
         dataframes = []
         i = 0
-        for group_name, group_df in grouped:
-            vals = {
-                "Speed": [group_df.iloc[0]["Speed"]],
-                "AZ": [group_df.iloc[0]["AZ"]],
-                "EL": [group_df.iloc[0]["EL"]],
-                "Range": [group_df.iloc[0]["Range"]],
-                "Position (lat)": [group_df.iloc[0]["Position (lat)"]],
-                "Position (lon)": [group_df.iloc[0]["Position (lon)"]],
-                "Position (alt MSL)": [group_df.iloc[0]["Position (alt MSL)"]]
-            }
-            l = len(group_df)
+        
+        pool = mp.Pool(mp.cpu_count())
 
-            track = RADARTrack(uuid=group_name, init_vals=vals)
-            track.calculate_new_values(group_df.iloc[1:l])
+        results = []
+        for result in tqdm.tqdm(pool.imap_unordered(calculate_feature, [[name, group] for name, group in grouped]), total=len(grouped)):
+            results.append(result)
+        features = pd.concat(results)
 
-            features = track.get_feature_vector()
-            features["Label"] = group_df.iloc[0]["Label"]
-            features = {k:[v] for k,v in features.items()} # pandas needs everything to have an index
-            dataframes.append(DataFrame.from_dict(features, orient='columns'))
-
-            i+=l
-            print("Progress: " + str(i) + "/" + str(len(data)), end='\r')
-
-        data = pd.concat(dataframes)
+        data = features.reset_index()
         data.dropna(how='any', inplace=True)
 
         print("\n\nTraining Model...")
@@ -113,34 +124,18 @@ class Model:
         grouped = data.groupby("UUID")
         dataframes = []
         i = 0
-        for group_name, group_df in grouped:
-            vals = {
-                "Speed": [group_df.iloc[0]["Speed"]],
-                "AZ": [group_df.iloc[0]["AZ"]],
-                "EL": [group_df.iloc[0]["EL"]],
-                "Range": [group_df.iloc[0]["Range"]],
-                "Position (lat)": [group_df.iloc[0]["Position (lat)"]],
-                "Position (lon)": [group_df.iloc[0]["Position (lon)"]],
-                "Position (alt MSL)": [group_df.iloc[0]["Position (alt MSL)"]]
-            }
-            l = len(group_df)
+        
+        pool = mp.Pool(mp.cpu_count())
 
-            track = RADARTrack(uuid=group_name, init_vals=vals)
-            track.calculate_new_values(group_df.iloc[1:l])
+        results = []
+        for result in tqdm.tqdm(pool.imap_unordered(calculate_feature, [[name, group] for name, group in grouped]), total=len(grouped)):
+            results.append(result)
+        features = pd.concat(results)
 
-            features = track.get_feature_vector()
-            features["Label"] = group_df.iloc[0]["Label"]
-            features = {k:[v] for k,v in features.items()} # pandas needs everything to have an index
-            dataframes.append(DataFrame.from_dict(features, orient='columns'))
-
-            i+=l
-            print("Progress: " + str(i) + "/" + str(len(data)), end='\r')
-
-        data = pd.concat(dataframes)
+        data = features.reset_index()
         data.dropna(how='any', inplace=True)
 
-        print("\nTesting Model...")
-
+        print("\n\nTraining Model...")
         X = data.drop("Label", axis=1)
         y = data["Label"]
         X.drop("UUID", axis=1, inplace=True)
