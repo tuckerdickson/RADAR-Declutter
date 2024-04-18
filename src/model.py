@@ -18,6 +18,7 @@ from sklearn.metrics import classification_report
 import multiprocessing as mp
 import tqdm
 
+
 def calculate_feature(group):
     name, group = group
     vals = {
@@ -36,15 +37,17 @@ def calculate_feature(group):
 
     features = track.get_feature_vector()
     features["Label"] = group.iloc[0]["Label"]
-    features = {k:[v] for k,v in features.items()} # pandas needs everything to have an index
+    features = {k: [v] for k, v in features.items()}  # pandas needs everything to have an index
     features = DataFrame.from_dict(features, orient='columns')
 
     return features
 
+
 class Model:
 
     def __init__(self, path=None):
-        self.model = RandomForestClassifier(class_weight='balanced') if path is None else self.load_model(path) # the actual model
+        self.model = RandomForestClassifier(class_weight='balanced') if path is None else self.load_model(
+            path)  # the actual model
         self.records = dictionary.Dictionary()  # dictionary that stores historic radar data
 
     def save_model(self, filename):
@@ -61,23 +64,24 @@ class Model:
         except FileNotFoundError:
             print(f"no model found at {filename}")
             return None
-        
+
     def clear_model(self):
         self.model = RandomForestClassifier(class_weight='balanced')
 
     def train_model(self, data):
-        
+
         data = pre.clean_df(data)
 
         print("Generating feature vectors...")
         grouped = data.groupby("UUID")
         dataframes = []
         i = 0
-        
+
         pool = mp.Pool(mp.cpu_count())
 
         results = []
-        for result in tqdm.tqdm(pool.imap_unordered(calculate_feature, [[name, group] for name, group in grouped]), total=len(grouped)):
+        for result in tqdm.tqdm(pool.imap_unordered(calculate_feature, [[name, group] for name, group in grouped]),
+                                total=len(grouped)):
             results.append(result)
         features = pd.concat(results)
 
@@ -124,11 +128,12 @@ class Model:
         grouped = data.groupby("UUID")
         dataframes = []
         i = 0
-        
+
         pool = mp.Pool(mp.cpu_count())
 
         results = []
-        for result in tqdm.tqdm(pool.imap_unordered(calculate_feature, [[name, group] for name, group in grouped]), total=len(grouped)):
+        for result in tqdm.tqdm(pool.imap_unordered(calculate_feature, [[name, group] for name, group in grouped]),
+                                total=len(grouped)):
             results.append(result)
         features = pd.concat(results)
 

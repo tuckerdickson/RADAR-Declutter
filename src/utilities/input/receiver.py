@@ -38,10 +38,11 @@ def ctc_to_pd(body):
     # extract fields from body (which is a CtcInCommonMeasurement_3DPositionStruct object)
     uuid = body.trackNumber
 
-    # to get the azimuth, elevation, and range, use the inverse transformation that was used to encode them
+    # to get the azimuth, elevation, range, and RCS use the inverse transformation that was used to encode them
     azimuth = (body.azimuth * 360) / (2 ** 32)
     elevation = (body.elevation * 180) / (2 ** 16)
     range_ = body.range / 16
+    rcs = body.RCS / 16
 
     # calculate the latitude, longitude, and altitude (using (40, -90, 200) as the reference point)
     lat, lon, alt = calculate_position(range_, azimuth, elevation, 40.0, -90.0, 200.0)
@@ -63,7 +64,8 @@ def ctc_to_pd(body):
         'Range': [range_],
         'Position (lat)': [lat],
         'Position (lon)': [lon],
-        'Position (alt MSL)': [alt]
+        'Position (alt MSL)': [alt],
+        'Radar Cross Section': [rcs]
     }
 
     df = pd.DataFrame(data)
