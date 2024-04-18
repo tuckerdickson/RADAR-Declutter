@@ -13,12 +13,24 @@ LINES_PER_TIME = {
     0: 1,
     1: 1,
     2: 1,
-    3: 1,
-    4: 1,
+    3: 2,
+    4: 2,
     5: 2,
-    6: 2,
-    7: 3,
-    8: 3
+    6: 4,
+    7: 4,
+    8: 4,
+    9: 8,
+    10: 8,
+    11: 8,
+    12: 16,
+    13: 16,
+    14: 16,
+    15: 32,
+    16: 32,
+    17: 32,
+    18: 64,
+    19: 64,
+    20: 64
 }
 
 # maps UUIDs to integer track numbers
@@ -260,6 +272,8 @@ def main(argv=None, demonstration=True):
                 print(f"Sending message with UUID: {row["UUID"]}")
                 encoded_message = encode_message(header, row)
                 send_message(args.host, args.port, encoded_message)
+            # send a message indicating that all rows for this time point have been sent
+            send_message(args.host, args.port, b'A')
 
             # sleep between transmissions to imitate the radar system
             time.sleep(5)

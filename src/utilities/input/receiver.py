@@ -11,7 +11,7 @@ def ctc_to_pd(body):
     azimuth = (body.azimuth * 360) / (2 ** 32)
     elevation = (body.elevation * 180) / (2 ** 16)
     range_ = body.range / 16
-    lat, lon, alt = calculate_position(range_, azimuth, elevation, 39.0, -87.0, 260.0)
+    lat, lon, alt = calculate_position(range_, azimuth, elevation, 40.0, -90.0, 200.0)
 
     velocityNorth = body.velocityNorth / 16
     velocityEast = (body.velocityEast * 22.5) / (2 ** 16)
@@ -157,18 +157,21 @@ class Receiver:
                         if not data:
                             break
 
-                        # print(f"Received {len(data)} bytes from {addr}")
+                        if len(data) == 1:
+                            self.demo.update_plot()
 
-                        # decode the message
-                        (header, body) = decode_message(data)
+                        else:
+                            # decode the message
+                            (header, body) = decode_message(data)
 
-                        if header.msgType == 1:
-                            data_pd = ctc_to_pd(body)
+                            if header.msgType == 1:
+                                data_pd = ctc_to_pd(body)
 
-                            # if self.demo is not None:
-                            #     self.demo.run_test(data_pd)
-                            # else:
-                            self.model.make_inference(data_pd)
+                                if self.demo is not None:
+                                    data_pd["Class"] = body.trackDescriptorFlag
+                                    self.demo.run_test(data_pd)
+                                else:
+                                    self.model.make_inference(data_pd)
 
     def begin_listening(self):
         self.receive_messages()
