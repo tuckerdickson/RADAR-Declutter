@@ -168,6 +168,12 @@ def parse_args(argv):
                         help="network port"
                         )
 
+    # whether running demonstration
+    parser.add_argument("-d", "--demo",
+                        action="store_true",
+                        help="set True when running demonstration"
+                        )
+
     # parse the arguments
     args = parser.parse_args(argv)
 
@@ -244,18 +250,19 @@ def send_message(host, port, message):
         s.sendall(message)
 
 
-def main(argv=None, demonstration=True):
+def main(argv=None):
     """
     Main function of transmitter.py; parses arguments, loads and transforms the data, and sends it to the receiver.
     :param argv: The command line arguments.
-    :param demonstration: Whether to run as the demonstration or not.
     :return: None
     """
     # parse the command line arguments
     args = parse_args(argv)
 
     # if running in demonstration mode
-    if demonstration:
+    if args.demo:
+        print("Transmitting Demo data")
+
         # load the data (grouped on UUID)
         grouped_df = get_grouped_data("../../../data/processed/crane/bird_drone_60.csv")
 

@@ -66,7 +66,7 @@ def execute_args(args):
 
     # if operation mode is listen, create a network connection and begin listening for messages
     elif args.mode == "listen":
-        listener = receiver.Receiver(classifier, args.host, args.port, demo=False)
+        listener = receiver.Receiver(classifier, args.host, args.port)
         listener.begin_listening()
 
     # if the operation mode is inference, pass the data from input csv through classifier
