@@ -35,7 +35,8 @@ class Dictionary:
             "Range": [plot["Range"]],
             "Position (lat)": [plot["Position (lat)"]],
             "Position (lon)": [plot["Position (lon)"]],
-            "Position (alt MSL)": [plot["Position (alt MSL)"]]
+            "Position (alt MSL)": [plot["Position (alt MSL)"]],
+            "Radar Cross Seciton": [plot["Radar Cross Section"]],
         }
         if uuid in self.dictionary:
             self.dictionary[uuid].calculate_new_values(vals)

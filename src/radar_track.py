@@ -16,6 +16,7 @@ class RADARTrack:
             'std_heading': 0,
             'mav_factor': 0,
             'avg_curvature': 0,
+            'avg_rcs': init_vals['Radar Cross Section'][0],
             "m1_speed": 0,
             "m1_heading": 0,
             "m1_azimuth": 0,
@@ -98,6 +99,7 @@ class RADARTrack:
                              (self.updates["Position (lon)"].diff(-1)))
         self.feature_vector['std_heading'] = np.std(heading, ddof=1)
         self.feature_vector['avg_curvature'] = self.calculate_average_curvature(self.updates)
+        self.feature_vector['avg_rcs'] = np.mean(self.updates['Radar Cross Section'])
         self.feature_vector['mav_factor'] = self.feature_vector['avg_speed']/(self.feature_vector['std_heading'] + 1e-6)
 
         sm_df = self.updates[['Speed', 'Range', 'AZ', 'EL']]

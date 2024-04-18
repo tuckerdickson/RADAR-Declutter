@@ -14,11 +14,18 @@ DROP_COLUMNS = ['Name', 'Create Time', 'User Edit Time', 'Type', 'Associated UUI
                 'AIS Destination', 'AIS ETA', 'Fused', 'Fused Tracks']
 
 # mar14_SM.sav
+#
+#
+# AVG_RCS INCLUDED IN FEATURE MAP
+# NOT A FEATURE IN MAR14
+# FEATURE FOR APR17 MODEL
+#
 FEATURE_MAP = {'avg_speed': 'Average Speed',
                'std_speed': 'Stan. Dev. Speed',
                'avg_heading': 'Average Heading',
                'std_heading': 'Stan. Dev. Heading',
                'avg_curvature': 'Average Curvature',
+               'avg_rcs': 'Average Radar Cross Section',
                'mav_factor': 'Maneuverability',
                'm1_range': 'M1 Range',
                'm1_azimuth': 'M1 AZ',
@@ -33,7 +40,8 @@ FEATURE_MAP = {'avg_speed': 'Average Speed',
                }
 
 USE_FEATURES = ['Average Speed', 'Stan. Dev. Speed',
-                'Stan. Dev. Heading', 'Average Curvature', 'Maneuverability',
+                'Stan. Dev. Heading', 'Average Curvature', 
+                'Average Radar Cross Section', 'Maneuverability',
                 'M1 Range', 'M1 AZ', 'M1 EL', 'M1 Speed', 'M1 Heading',
                 'M2 Range', 'M2 AZ', 'M2 EL', 'M2 Speed', 'M2 Heading',
                 ]
