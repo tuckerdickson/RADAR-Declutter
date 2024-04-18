@@ -17,16 +17,16 @@ class RADARTrack:
             'mav_factor': 0,
             'avg_curvature': 0,
             'avg_rcs': init_vals['Radar Cross Section'][0],
+            "m1_range": 0,
+            "m1_az": 0,
+            "m1_el": 0,
             "m1_speed": 0,
             "m1_heading": 0,
-            "m1_azimuth": 0,
-            "m1_elevation": 0,
-            "m1_range": 0,
+            "m2_range": 0,
+            "m2_az": 0,
+            "m2_el": 0,
             "m2_speed": 0,
             "m2_heading": 0,
-            "m2_azimuth": 0,
-            "m2_elevation": 0,
-            "m2_range": 0,
         }
 
     def __len__(self):
@@ -104,6 +104,6 @@ class RADARTrack:
 
         sm_df = self.updates[['Speed', 'Range', 'AZ', 'EL']]
         sm_df = sm_df.assign(Heading=heading)
-        for name,field in [('speed','Speed'), ('range','Range'), ('azimuth','AZ'), ('elevation','EL'), ('heading','Heading')]:
+        for name,field in [('speed','Speed'), ('range','Range'), ('az','AZ'), ('el','EL'), ('heading','Heading')]:
             self.feature_vector['m1_' + name] = self.calculate_m1(sm_df, field)
             self.feature_vector['m2_' + name] = self.calculate_m2(sm_df, field)
