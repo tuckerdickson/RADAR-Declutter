@@ -19,13 +19,19 @@ def file_exists(path):
 def validate_args(args, parser):
     # checks for demonstration mode
     if args.mode == "demo":
+        # =============================== USED FOR CSV DEMO ===============================
         # both input and output directories must be specified
-        if not (args.indir and args.outdir):
-            parser.error("demo mode requires both input and output directories")
+        # if not (args.indir and args.outdir):
+        #     parser.error("demo mode requires both input and output directories")
+        #
+        # # both input and output directories must exist (and must be directories)
+        # if not (directory_exists(args.indir) and directory_exists(args.outdir)):
+        #     parser.error("input or output directory does not exist or is not accessible")
+        # =================================================================================
 
-        # both input and output directories must exist (and must be directories)
-        if not (directory_exists(args.indir) and directory_exists(args.outdir)):
-            parser.error("input or output directory does not exist or is not accessible")
+        # both network host and port must be specified
+        if not (args.host and args.port):
+            parser.error("listen mode requires both host and port")
 
     # checks for listen (networked) mode
     elif args.mode == "listen":
@@ -50,8 +56,13 @@ def execute_args(args):
 
     # if operation mode is demo, run the demo
     if args.mode == "demo":
-        d = demo.Demo(args.indir, args.outdir, classifier)
-        d.run_tests()
+        # =============================== USED FOR CSV DEMO ===============================
+        # d = demo.CsvDemo(args.indir, args.outdir, classifier)
+        # d.run_tests()
+        # =================================================================================
+        d = demo.NetworkDemo(classifier)
+        listener = receiver.Receiver(classifier, args.host, args.port, demo=d)
+        listener.begin_listening()
 
     # if operation mode is listen, create a network connection and begin listening for messages
     elif args.mode == "listen":

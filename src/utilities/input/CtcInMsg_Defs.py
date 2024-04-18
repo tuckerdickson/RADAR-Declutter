@@ -12,16 +12,16 @@ class CtcInDataHeader:
 
 
 class CtcInCommonMeasurement_3DPositionStruct:
-    def __init__(self, hdr, trackNumber, range, azimuth, elevation, rangeSigma,
-                 azimuthSigma, elevationSigma, SNR, RCS, doppler, trackDescriptorFlag):
+    def __init__(self, hdr, trackNumber, range, azimuth, elevation, velocityNorth,
+                 velocityEast, velocityUp, SNR, RCS, doppler, trackDescriptorFlag):
         self.hdr = hdr
         self.trackNumber = trackNumber
         self.range = range
         self.azimuth = azimuth
         self.elevation = elevation
-        self.rangeSigma = rangeSigma
-        self.azimuthSigma = azimuthSigma
-        self.elevationSigma = elevationSigma
+        self.velocityNorth = velocityNorth
+        self.velocityEast = velocityEast
+        self.velocityUp = velocityUp
         self.SNR = SNR
         self.RCS = RCS
         self.doppler = doppler

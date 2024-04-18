@@ -1,10 +1,20 @@
-DEMO_PLOT_X_LOWER = 38.904
+# =============================== USED FOR CSV DEMO ===============================
+# DEMO_PLOT_X_LOWER = 38.904
+#
+# DEMO_PLOT_X_UPPER = 38.910
+#
+# DEMO_PLOT_Y_LOWER = -86.872
+#
+# DEMO_PLOT_Y_UPPER = -86.860
+# =================================================================================
 
-DEMO_PLOT_X_UPPER = 38.910
+DEMO_PLOT_X_LOWER = 39.99
 
-DEMO_PLOT_Y_LOWER = -86.872
+DEMO_PLOT_X_UPPER = 40.01
 
-DEMO_PLOT_Y_UPPER = -86.860
+DEMO_PLOT_Y_LOWER = -90.01
+
+DEMO_PLOT_Y_UPPER = -89.99
 
 DROP_COLUMNS = ['Name', 'Create Time', 'User Edit Time', 'Type', 'Associated UUID', 'Note', 'Source Name',
                 'Source Class', 'Source LID', 'Combat ID', 'Object ID', 'Range To Contact', 'Bearing To Contact',

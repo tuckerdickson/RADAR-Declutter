@@ -194,7 +194,7 @@ class Model:
             return input_df
 
         # otherwise, output the augmented dataframe as a csv
-        print(input_df)
+        print(f"{input_df}\n")
         # input_df.to_csv(output_path, index=False)
 
         # otherwise, output the augmented dataframe as a protobuff file
