@@ -7,6 +7,18 @@ from . import CtcInMsg_Defs
 
 
 def calculate_position(range_dist, azimuth, elevation, sensor_lat=0.0, sensor_lon=0.0, sensor_alt=0.0):
+    """
+    Calculates the position of an object, given the distance of the object from a sensor, the azimuth (degrees
+    clockwise from true north, looking down) and the elevation (degrees upward from the tangent plane) angles of the
+     object, relative to the sensor, and the latitude, longitude, and altitude of the sensor itself.
+    :param range_dist: The direct distance of the object from the sensor (in meters).
+    :param azimuth: The azimuth angle of the object (degrees upward from the tangent plane), relative to the sensor.
+    :param elevation: The elevation angle of the object (degrees upward from the tangent), relative to the sensor.
+    :param sensor_lat: The latitude of the sensor.
+    :param sensor_lon: The longitude of the sensor.
+    :param sensor_alt: The altitude of the sensor.
+    :return: The object's latitude, longitude, and altitude (as a tuple).
+    """
     # convert az and el from degrees to radians
     azimuth_radians = math.radians(azimuth)
     elevation_radians = math.radians(elevation)
@@ -31,26 +43,40 @@ def calculate_position(range_dist, azimuth, elevation, sensor_lat=0.0, sensor_lo
 
 
 def calculate_speed(north, east, up):
+    """
+    Calculates the speed of an object, given the northward, eastward, and upward components of the object's velocity.
+    :param north: The northward component of the object's velocity (negative indicates southward motion).
+    :param east: The eastward component of the object's velocity (negative indicates westward motion).
+    :param up: The upward component of the object's velocity (negative indicates downward motion).
+    :return: The speed of the object (in meters per second).
+    """
+    # speed is just the magnitude of the velocity vector (made up of the three components).
     return math.sqrt((north * north) + (east * east) + (up * up))
 
 
 def ctc_to_pd(body):
+    """
+    Extracts, transforms, and combines into a DataFrame the relevant fields (range, azimuth, elevation, rcs, speed, and
+    location) from a CtcInCommonMeasurement_3DPositionStruct object.
+    :param body: A CtcInCommonMeasurement_3DPositionStruct object containing encoded information on an object.
+    :return: A DataFrame with the relevant (transformed) fields from body.
+    """
     # extract fields from body (which is a CtcInCommonMeasurement_3DPositionStruct object)
     uuid = body.trackNumber
 
-    # to get the azimuth, elevation, range, and RCS use the inverse transformation that was used to encode them
+    # to get the azimuth, elevation, and range use the inverse transformation that was used to encode them
     azimuth = (body.azimuth * 360) / (2 ** 32)
     elevation = (body.elevation * 180) / (2 ** 16)
     range_ = body.range / 16
-    rcs = body.RCS / 16
+    rcs = body.RCS / 1000
 
     # calculate the latitude, longitude, and altitude (using (40, -90, 200) as the reference point)
     lat, lon, alt = calculate_position(range_, azimuth, elevation, 40.0, -90.0, 200.0)
 
     # use inverse transformations to get the three directional velocity components
     velocityNorth = body.velocityNorth / 16
-    velocityEast = (body.velocityEast * 22.5) / (2 ** 16)
-    velocityUp = (body.velocityUp * 22.5) / (2 ** 16)
+    velocityEast = body.velocityEast / 16
+    velocityUp = body.velocityUp / 16
 
     # calculate speed using magnitude formula
     speed = calculate_speed(velocityNorth, velocityEast, velocityUp)
@@ -73,6 +99,12 @@ def ctc_to_pd(body):
 
 
 def decode_message(message):
+    """
+    Decodes a message received from the radar (or transmitter) and returns as ctc header and body structures.
+    :param message: The message from the radar (or transmitter) to decode.
+    :return: A ctc header object (type CtcInDataHeader) and a ctc body object (type
+    CtcInCommonMeasurement_3DPositionStruct or CtcInCommonTrackDropStruct or CtcInCommonSensorStatusStruct).
+    """
     # comes from CtcInDataHeader in CtcInMsg_Defs.h (B <-> uint8_t, H <-> uint16_t, I <-> uint32_t)
     header_format = "=BBBBHIHH"
 
@@ -96,7 +128,7 @@ def decode_message(message):
 
         # comes from CtcInCommonMeasurement_3DPositionStruct in CtcInMsg_Defs.h
         # (h <-> int16_t, H <-> uint16_t, I <-> uint32_t)
-        body_format = "=IIIhHHHHHHH"
+        body_format = "=IIIhhhhHHHH"
 
         # unpack the raw body according to the format above, store in Python structure
         body_data = struct.unpack(body_format, body_message)
@@ -135,6 +167,16 @@ def decode_message(message):
 
 
 class Receiver:
+    """
+    This class is responsible for receiving and decoding messages from the radar system or the transmitter program, and
+    for sending the decoded data through the classification model.
+
+    Attributes:
+        model: The classification model which takes in the message data and generates predictions
+        host: The IP address to connect with the radar system on.
+        port: The port to connect with the radar system on.
+        demo: A NetworkDemo object used to run the demo, or None if the demo is not being run.
+    """
     def __init__(self, model, host, port, demo=None):
         self.model = model  # the classifier
         self.host = host    # IP address to connect on
@@ -142,58 +184,54 @@ class Receiver:
         self.demo = demo    # NetworkDemo object (if running the demo) or None (if not running demo)
 
     def receive_messages(self):
-        # create a socket
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            # bind the socket to the address and port
+        """
+        Creates a UDP socket and listens for incoming messages from the radar system or transmitter program. Once a
+        message is received, it is decoded and sent to the classification model.
+        :return: None (control is never returned from this function unless the program is killed).
+        """
+        # create a UDP socket
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            # bind the UDP socket to the address and port
             s.bind((self.host, self.port))
 
-            # listen for incoming connections
-            s.listen()
-            print(f"Listening on {self.host}:{self.port}")
-
             # keep the receiver listening indefinitely
+            print(f"Listening on {self.host}:{self.port}")
             while True:
-                # accept an incoming connection
-                conn, addr = s.accept()
+                # buffer size is 1024 bytes
+                data = s.recv(1024)
 
-                # the following context manager will the connection is closed properly
-                with conn:
-                    # read in the transmitted data
-                    while True:
-                        data = conn.recv(1024)
+                # when using the demo, 1-byte messages signify the last message of a time point
+                if len(data) == 1:
+                    # not really sure what would happen if a non-demo 1-byte message was received...
+                    try:
+                        self.demo.update_plot()
+                    # ...so we catch any exceptions that may arise, print, and continue
+                    except Exception as e:
+                        print(e)
 
-                        # break if transmitter closed connection
-                        if not data:
-                            break
+                # if the message isn't 1-byte, we assume it's a valid radar message with a header and a body
+                else:
+                    # decode the message into the header and body
+                    (header, body) = decode_message(data)
 
-                        # when using the demo, 1-byte messages signify the last message of a time point
-                        if len(data) == 1:
-                            # not really sure what would happen if a non-demo 1-byte message was received...
-                            try:
-                                self.demo.update_plot()
-                            # ...so we catch any exceptions that may arise, print, and continue
-                            except Exception as e:
-                                print(e)
+                    # messages of type 1 (CtcInCommonMeasurement_3DPositionStruct) are what we're interested in
+                    if header.msgType == 1:
+                        # convert the CtcInCommonMeasurement_3DPositionStruct object to a DataFrame
+                        data_pd = ctc_to_pd(body)
 
-                        # if the message isn't 1-byte, we assume it's a valid radar message with a header and a body
+                        # if running the demo
+                        if self.demo is not None:
+                            # add the gt class (held in track descriptor flag field) to the DataFrame
+                            data_pd["Class"] = body.trackDescriptorFlag
+                            self.demo.run_test(data_pd)
+
+                        # if not running the demo (i.e., standard inferencing)
                         else:
-                            # decode the message into the header and body
-                            (header, body) = decode_message(data)
-
-                            # messages of type 1 (CtcInCommonMeasurement_3DPositionStruct) are what we're interested in
-                            if header.msgType == 1:
-                                # convert the CtcInCommonMeasurement_3DPositionStruct object to a DataFrame
-                                data_pd = ctc_to_pd(body)
-
-                                # if running the demo
-                                if self.demo is not None:
-                                    # add the gt class (held in track descriptor flag field) to the DataFrame
-                                    data_pd["Class"] = body.trackDescriptorFlag
-                                    self.demo.run_test(data_pd)
-
-                                # if not running the demo (i.e., standard inferencing)
-                                else:
-                                    self.model.make_inference(data_pd)
+                            self.model.make_inference(data_pd)
 
     def begin_listening(self):
+        """
+        Starts the listen mode of operation.
+        :return: None
+        """
         self.receive_messages()

@@ -1,11 +1,11 @@
 import argparse
+import CtcInMsg_Defs
 import math
 import pandas as pd
 import socket
 import struct
 import time
 
-import CtcInMsg_Defs
 from scapy.all import rdpcap
 
 # keys: time stamps for the demo (in seconds), values: number of objects to send in that time stamp
@@ -34,9 +34,7 @@ LINES_PER_TIME = {
 }
 
 # maps UUIDs to integer track numbers
-TRACK_NUMBERS = {
-
-}
+TRACK_NUMBERS = {}
 
 
 def encode_message(hdr, body_df):
@@ -214,10 +212,10 @@ def pd_to_ctc_body(pd_body):
         int((pd_body['AZ'] * (2 ** 32)) / 360),
         int((pd_body['EL'] * (2 ** 16)) / 180),
         int(vel * 16),
-        int((vel * (2 ** 16)) / 22.5),
-        int((vel * (2 ** 16)) / 22.5),
+        int(vel * 16),
+        int(vel * 16),
         1024,
-        int(pd_body['Radar Cross Section'] * 16),
+        int(pd_body['Radar Cross Section'] * 1000),
         61440,
         int(pd_body['Label'])
     ]
@@ -233,23 +231,6 @@ def remove_first_row(df):
     return df.iloc[1:]
 
 
-def send_message(host, port, message):
-    """
-    Sends a message to the receiver at the specified host and port.
-    :param host: The IP address to send the message.
-    :param port: The port to send the message.
-    :param message: The message to send.
-    :return: None
-    """
-    # create a socket
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        # form a connection
-        s.connect((host, port))
-
-        # send the message
-        s.sendall(message)
-
-
 def main(argv=None):
     """
     Main function of transmitter.py; parses arguments, loads and transforms the data, and sends it to the receiver.
@@ -258,6 +239,9 @@ def main(argv=None):
     """
     # parse the command line arguments
     args = parse_args(argv)
+
+    # create a UDP socket to send messages
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # if running in demonstration mode
     if args.demo:
@@ -278,12 +262,13 @@ def main(argv=None):
             for row in rows:
                 print(f"Sending message with UUID: {row["UUID"]}")
                 encoded_message = encode_message(header, row)
-                send_message(args.host, args.port, encoded_message)
+                sock.sendto(encoded_message, (args.host, args.port))
+
             # send a message indicating that all rows for this time point have been sent
-            send_message(args.host, args.port, b'A')
+            sock.sendto(b'A', (args.host, args.port))
 
             # sleep between transmissions to imitate the radar system
-            time.sleep(5)
+            time.sleep(2)
 
     # if not running in demonstration mode
     else:
@@ -295,7 +280,7 @@ def main(argv=None):
         for packet in packets:
             if packet.haslayer("Raw"):
                 message_ = packet.getlayer("Raw").load
-                send_message(args.host, args.port, message_)
+                sock.sendto(message_, (args.host, args.port))
                 time.sleep(1)
 
 
