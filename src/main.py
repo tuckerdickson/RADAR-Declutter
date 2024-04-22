@@ -105,13 +105,13 @@ def main(argv=None):
     # network host argument, required for LISTEN and DEMO modes
     parser.add_argument("-ho", "--host",
                         type=str,
-                        help="network host (required for 'listen' mode)"
+                        help="network host (required for 'listen' and 'demo' modes)"
                         )
 
     # network port argument, required for LISTEN and DEMO modes
     parser.add_argument("-p", "--port",
                         type=int,
-                        help="network port (required for 'listen' mode)"
+                        help="network port (required for 'listen' and 'demo' modes)"
                         )
 
     # input csv file argument, only required for INFERENCE mode
