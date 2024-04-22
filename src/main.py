@@ -9,26 +9,32 @@ from utilities.input import receiver
 
 
 def directory_exists(path):
+    """
+    Checks if the path passed in is an existing directory.
+    :param path: The path to be checked.
+    :return: True if the path exists and is a directory, False otherwise.
+    """
     return os.path.exists(path) and os.path.isdir(path)
 
 
 def file_exists(path):
+    """
+    Checks if the path passed in is an existing file.
+    :param path: The path to be checked.
+    :return: True if the path exists and is a file, False otherwise.
+    """
     return os.path.exists(path) and os.path.isfile(path)
 
 
 def validate_args(args, parser):
+    """
+    Validates the command line arguments passed to the program.
+    :param args: The command line arguments passed to the program.
+    :param parser: An argparse parser instance, used to parse the command line arguments.
+    :return: None (an error will be thrown if an invalid argument is found).
+    """
     # checks for demonstration mode
     if args.mode == "demo":
-        # =============================== USED FOR CSV DEMO ===============================
-        # both input and output directories must be specified
-        # if not (args.indir and args.outdir):
-        #     parser.error("demo mode requires both input and output directories")
-        #
-        # # both input and output directories must exist (and must be directories)
-        # if not (directory_exists(args.indir) and directory_exists(args.outdir)):
-        #     parser.error("input or output directory does not exist or is not accessible")
-        # =================================================================================
-
         # both network host and port must be specified
         if not (args.host and args.port):
             parser.error("listen mode requires both host and port")
@@ -51,30 +57,37 @@ def validate_args(args, parser):
 
 
 def execute_args(args):
+    """
+    Executes the proper functions, as specified by the (parsed) command line arguments.
+    :param args: The parsed command line arguments.
+    :return: None (program flow redirects to the desired function for the duration of the program's execution).
+    """
     # define the classifier model (path specified in constants.py)
     classifier = model.Model(path=c.MODEL_PATH)
 
-    # if operation mode is demo, run the demo
+    # if the operation mode is demo, begin running the demo
     if args.mode == "demo":
-        # =============================== USED FOR CSV DEMO ===============================
-        # d = demo.CsvDemo(args.indir, args.outdir, classifier)
-        # d.run_tests()
-        # =================================================================================
         d = demo.NetworkDemo(classifier)
         listener = receiver.Receiver(classifier, args.host, args.port, demo=d)
         listener.begin_listening()
 
-    # if operation mode is listen, create a network connection and begin listening for messages
+    # if the operation mode is listen, begin listening for messages
     elif args.mode == "listen":
         listener = receiver.Receiver(classifier, args.host, args.port)
         listener.begin_listening()
 
-    # if the operation mode is inference, pass the data from input csv through classifier
+    # if the operation mode is inference, pass the input data through the classifier
     elif args.mode == "inference":
         classifier.make_inference(pd.read_csv(args.input), args.output)
 
 
 def main(argv=None):
+    """
+    Main entry point of the program, creates an argument parser, parses the command line arguments, and then executes
+    the appropriate function based on the arguments.
+    :param argv: The parsed command line arguments passed to the program.
+    :return: None (program flow redirects to the desired function for the duration of the program's execution).
+    """
     # define the argument parser
     parser = argparse.ArgumentParser(
         prog="Radar Declutter",
@@ -82,44 +95,32 @@ def main(argv=None):
                     modes of operation: demo, listen, and inference."""
     )
 
-    # mode of operation (either demo, listen, or inference), always required
+    # mode of operation argument (either demo, listen, or inference), always required
     parser.add_argument(
         "mode",
         choices=['demo', 'listen', 'inference'],
         help="mode of operation"
     )
 
-    # input directory, only required for DEMO mode
-    parser.add_argument("-id", "--indir",
-                        type=str,
-                        help="input directory (required for 'demo' mode)"
-                        )
-
-    # output directory, only required for DEMO mode
-    parser.add_argument("-od", "--outdir",
-                        type=str,
-                        help="out directory (required for 'demo' mode)"
-                        )
-
-    # network host, only required for LISTEN model
+    # network host argument, required for LISTEN and DEMO modes
     parser.add_argument("-ho", "--host",
                         type=str,
                         help="network host (required for 'listen' mode)"
                         )
 
-    # network port, only required for LISTEN model
+    # network port argument, required for LISTEN and DEMO modes
     parser.add_argument("-p", "--port",
                         type=int,
                         help="network port (required for 'listen' mode)"
                         )
 
-    # input csv file, only required for INFERENCE mode
+    # input csv file argument, only required for INFERENCE mode
     parser.add_argument("-i", "--input",
                         type=str,
                         help="input file (required for 'inference' mode)"
                         )
 
-    # output csv file, only required for INFERENCE mode
+    # output csv file argument, only required for INFERENCE mode
     parser.add_argument("-o", "--output",
                         type=str,
                         help="output file (required for 'inference' mode)"
@@ -128,8 +129,10 @@ def main(argv=None):
     # parse the arguments
     args = parser.parse_args(argv)
 
-    # ensure the args are valid and then perform the appropriate actions
+    # ensure the args are valid
     validate_args(args, parser)
+
+    # execute the appropriate function based on the arguments
     execute_args(args)
 
 

@@ -16,3 +16,9 @@ scipy==1.11.4
 six==1.16.0
 threadpoolctl==3.2.0
 tzdata==2023.4
+
+tqdm~=4.66.2
+scapy~=2.5.0
+google~=3.0.0
+schedule~=1.2.1
+geopy~=2.4.1
