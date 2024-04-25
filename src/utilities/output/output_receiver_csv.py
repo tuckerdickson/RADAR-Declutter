@@ -1,6 +1,6 @@
 import socket
 import os
-import track_pb2
+import utilities.output.track_csv_pb2 as track_csv_pb2
 import socket
 
 BUFFER_LENGTH = 1948
@@ -35,7 +35,7 @@ while True:
             break
 
         # Deserialize the message
-        received_message = track_pb2.Tracks()
+        received_message = track_csv_pb2.Tracks()
         received_message.ParseFromString(data)
 
         # Process the received message

@@ -1,7 +1,7 @@
 import dictionary
 import multiprocessing as mp
 import numpy as np
-import output
+import output_udp_to_proto
 import pandas as pd
 import pickle
 import preprocess as pre
@@ -258,7 +258,7 @@ class Model:
         # "clean" the data by dropping unnecessary columns, etc...
         df = input_df.copy()
         df = pre.clean_df(df)
-
+        print(input_df)
         # add plots to dictionary
         curr_uuids = []
         for idx, row in df.iterrows():
@@ -289,4 +289,4 @@ class Model:
         # currently disabled to avoid errors in working branches
         else:
             print(f"{input_df}\n")
-            # output.dataframe_to_protomessage(input_df, output_path)
+            # output_udp_to_proto.dataframe_to_protomessage(input_df, output_path)

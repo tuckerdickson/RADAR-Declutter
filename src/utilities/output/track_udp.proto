@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+message Tracks {
+    repeated Update track = 1;
+    message Update {
+        optional float uuid = 1;
+   	
+		optional float speed = 2;
+    	optional float az = 3;
+    	optional float el = 4;
+    	optional float range = 5;
+    	optional float position_lat = 6;
+    	optional float position_lon = 7;
+    	optional float position_alt_msl = 8;
+    	optional float radar_cross_section = 9;
+    	
+    	optional float prediction = 10;
+    	optional float confidence = 11;
+
+		optional float source_class = 12;
+    }
+}
+
+
