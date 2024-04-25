@@ -64,8 +64,20 @@ Before running RADAR Declutter, you need to have the following software installe
     3. Shortly after starting the transmitter, the demo window should appear.
 
 * Follow these instructions to train a new model:
+    1. Ensure that all training files use the same column headers as `ecco.csv`
+    2. Ensure that all birds and drones are marked using the `Combat_ID` column (Bird=`UNKNOWN_THREAT`, Drone=`HOSTILE`)
+    3. Put all training files into `/data/train`
+    4. run `python train.py (and any optional arguments)`
+        Note: all arguments are optional and their descriptions can be found by running `python train.py -h`
+    5. The new model is named after the current timestamp and saved under `/models` unless specified otherwise
 
 * Follow these instructions to test an existing model:
+    1. Ensure that all testing files use the same column headers as `ecco.csv`
+    2. Ensure that all birds and drones are marked using the `Combat_ID` column (Bird=`UNKNOWN_THREAT`, Drone=`HOSTILE`)
+    3. Put all testing files into `/data/test`
+    4. run `python test.py (and any optional arguments)`
+        Note: all arguments are optional and their descriptions can be found by running `python test.py -h`
+    5. The test results are saved as `test.csv` by default
 
 * Follow these instructions to change which model is used for classification:
     1. Within `constants.py` (`RADAR-Declutter/src/utilities/constants.py`), change `MODEL_PATH` to the path of the new model. All models should be stored in `RADAR-Declutter/models`, so you will likely only need to change the filename and not the rest of the path.
