@@ -33,7 +33,8 @@ def calculate_feature(group):
         "Range": [group.iloc[0]["Range"]],
         "Position (lat)": [group.iloc[0]["Position (lat)"]],
         "Position (lon)": [group.iloc[0]["Position (lon)"]],
-        "Position (alt MSL)": [group.iloc[0]["Position (alt MSL)"]]
+        "Position (alt MSL)": [group.iloc[0]["Position (alt MSL)"]],
+        "Radar Cross Section": [group.iloc[0]["Radar Cross Section"]],
     }
     length = len(group)
 
@@ -106,7 +107,7 @@ class Model:
         Re-initializes the model attribute as a new Random Forest Classifier.
         :return: None (re-initializes the model attribute instead).
         """
-        self.model = RandomForestClassifier(class_weight='balanced')
+        self.model = RandomForestClassifier()
 
     def train_model(self, data):
         """
@@ -144,7 +145,7 @@ class Model:
         X.drop("UUID", axis=1, inplace=True)
 
         # Perform 70-30 split test on given data
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
         # clone the current model and re-fit the clone
         rf = clone(self.model)

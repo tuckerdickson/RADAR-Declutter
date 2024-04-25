@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     data = []
     for file in files:
-        data.append(pd.read_csv(file))
+        data.append(pd.read_csv(file, low_memory=False))
 
     if(len(data) > 0):
         testing = pd.concat(data)
@@ -61,8 +61,9 @@ if __name__ == '__main__':
         if len(group_df) > args.trackLength:
             count = 0
             
+            l = len(group_df)
             for idx, row in group_df.iterrows():
-                if count % args.trackLength == 0:
+                if count % args.trackLength == 0 and l-count>=args.trackLength:
                     new_id = str(uuid.uuid4())
 
                 group_df.at[idx, "UUID"] = new_id
