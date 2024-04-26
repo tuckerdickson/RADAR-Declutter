@@ -22,3 +22,9 @@ scapy~=2.5.0
 google~=3.0.0
 schedule~=1.2.1
 geopy~=2.4.1
+
+google-api-core==2.18.0
+google-api-python-client==2.127.0
+google-auth==2.29.0
+google-auth-httplib2==0.2.0
+googleapis-common-protos==1.63.0

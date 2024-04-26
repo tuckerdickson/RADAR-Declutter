@@ -13,12 +13,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the contents of the src directory into the container at /app/src
 COPY src/ /app/src/
 
-# Expose the port your application runs on
-EXPOSE 17000
+# Copy the contents of the model directory into the container at /app/src
+COPY models/ /app/models/
 
-# Define environment variables
-ENV HOST="0.0.0.0"
-ENV PORT="17000"
+# Expose the port your application runs on
+EXPOSE 5000/udp
 
 # Define the command to run your application
-CMD ["python", "src/main.py", "listen", "--host", "$HOST", "--port", "$PORT"]
+CMD ["python", "src/main.py", "listen", "--host", "127.0.0.1", "--port", "5000"]
